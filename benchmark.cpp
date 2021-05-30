@@ -14,25 +14,29 @@ void PerThreadEvents(benchmark::State &state) {
 }
 
 void Span(benchmark::State &state) {
-  auto m = trace::Tracer().RegisterDurationEvent("main", "tag");
+  auto name = std::string(64, 'c');
   for (auto _ : state) {
-    trace::Span s{trace::Tracer(), m};
+    trace::Span s{trace::Tracer(), name};
+    trace::Tracer().PerThreadEvents()->events.consumer_all([](auto) {});
     benchmark::DoNotOptimize(trace::Tracer().PerThreadEvents());
     benchmark::ClobberMemory();
   }
 }
 
-void Register(benchmark::State &state) {
+void LockFreeQueue(benchmark::State &state) {
+  trace::LockFreeQueue<int, 4> r{};
   for (auto _ : state) {
-    trace::Tracer().RegisterDurationEvent("main", "tag");
-    benchmark::DoNotOptimize(trace::Tracer().attributes_);
+    r.emplace(1);
+    r.emplace(2);
+    r.emplace(3);
+    r.consumer_all([](int) {});
     benchmark::ClobberMemory();
   }
 }
 
 BENCHMARK(PerThreadEvents);
-BENCHMARK(Register);
 BENCHMARK(Span);
+BENCHMARK(LockFreeQueue);
 
 } // namespace
 

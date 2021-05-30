@@ -5,7 +5,8 @@ enable_testing()
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_EXTENSIONS Off)
-set(DEFAULT_COPTS "-fno-omit-frame-pointer" "-g" "-Wall" "-Wextra")
+set(DEFAULT_COPTS "-fno-omit-frame-pointer" "-g" "-Wall" "-Wextra") # "-fno-builtin-memcpy" "-U_FORTIFY_SOURCE"
+
 set(DEFAULT_LINKOPTS "")
 if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64" OR "${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "AMD64")
   list(APPEND DEFAULT_COPTS
