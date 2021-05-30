@@ -5,7 +5,8 @@ enable_testing()
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_EXTENSIONS Off)
-set(DEFAULT_COPTS "-fno-omit-frame-pointer" "-g" "-Wall" "-Wextra" "-I" "${PROJECT_SOURCE_DIR}")
+set(DEFAULT_COPTS "-fno-omit-frame-pointer" "-g" "-Wall" "-Wextra" "-I" "${PROJECT_SOURCE_DIR}") # "-fno-builtin-memcpy" "-U_FORTIFY_SOURCE"
+
 set(DEFAULT_LINKOPTS "")
 if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64" OR "${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "AMD64")
   list(APPEND DEFAULT_COPTS
@@ -42,20 +43,22 @@ find_package(Threads REQUIRED)
 set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "")
 add_subdirectory(../benchmark _build/benchmark)
 add_subdirectory(../googletest _build/googletest)
+set(JERRYCT_STRING_VIEW_ENABLE_TESTING OFF CACHE BOOL "")
+add_subdirectory(../string_view _build/string_view)
 
 add_executable(tracer
   main.cpp
 )
-target_link_libraries(tracer PRIVATE Threads::Threads)
+target_link_libraries(tracer PRIVATE jerryct::string_view Threads::Threads)
 
 add_executable(unit_tests
   tracer_unit_tests.cpp
 )
-target_link_libraries(unit_tests PRIVATE Threads::Threads gtest_main)
+target_link_libraries(unit_tests PRIVATE jerryct::string_view Threads::Threads gtest_main)
 add_test(unit_tests unit_tests)
 
 add_executable(benchmarks
   benchmark.cpp
 )
-target_link_libraries(benchmarks PRIVATE Threads::Threads benchmark::benchmark)
+target_link_libraries(benchmarks PRIVATE jerryct::string_view Threads::Threads benchmark::benchmark)
 
