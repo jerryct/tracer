@@ -14,11 +14,19 @@ void PerThreadEvents(benchmark::State &state) {
 }
 
 void Span(benchmark::State &state) {
-  auto name = std::string(64, 'c');
+  auto m = trace::Tracer().RegisterDurationEvent("main", "tag");
   for (auto _ : state) {
-    trace::Span s{trace::Tracer(), name};
+    trace::Span s{trace::Tracer(), m};
     trace::Tracer().PerThreadEvents()->events.consumer_all([](auto) {});
     benchmark::DoNotOptimize(trace::Tracer().PerThreadEvents());
+    benchmark::ClobberMemory();
+  }
+}
+
+void Register(benchmark::State &state) {
+  for (auto _ : state) {
+    trace::Tracer().RegisterDurationEvent("main", "tag");
+    benchmark::DoNotOptimize(trace::Tracer().attributes_);
     benchmark::ClobberMemory();
   }
 }
@@ -54,6 +62,7 @@ void ClockGettime(benchmark::State &state) {
 }
 
 BENCHMARK(PerThreadEvents);
+BENCHMARK(Register);
 BENCHMARK(Span);
 BENCHMARK(LockFreeQueue);
 BENCHMARK(Now);

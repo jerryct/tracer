@@ -3,34 +3,26 @@
 #ifndef TRACING_TRACING_H
 #define TRACING_TRACING_H
 
-#include "string_view.h"
 #include <atomic>
 #include <chrono>
-#include <cstring>
 #include <forward_list>
 #include <mutex>
-#include <type_traits>
+#include <string>
 #include <vector>
 
 namespace trace {
 
+struct Token {
+  int id;
+};
+
 enum class Phase { begin, end };
+enum class Type { duration, async };
 
-struct fixed_string {
-  fixed_string() noexcept : s_{0} {}
-  fixed_string(view::string_view v) noexcept {
-    if (v.empty()) {
-      s_ = 0;
-      return;
-    }
-    s_ = std::min(64UL, v.size());
-    std::memmove(&d_[0], v.data(), s_);
-  }
-
-  view::string_view as_string_view() const { return {&d_[0], s_}; }
-
-  char d_[64];
-  size_t s_;
+struct Attributes {
+  std::string name;
+  std::string tag;
+  Type type;
 };
 
 template <typename T, std::uint32_t S> struct LockFreeQueue {
@@ -92,9 +84,9 @@ template <typename T, std::uint32_t S> struct LockFreeQueue {
 struct TracerImpl {
 
   struct Event {
+    int id;
     Phase p;
     std::chrono::steady_clock::time_point ts;
-    fixed_string name;
   };
 
   struct Events {
@@ -103,6 +95,7 @@ struct TracerImpl {
   };
 
   std::mutex register_thread;
+  std::mutex register_event;
 
   Events *PerThreadEvents() {
     thread_local Events *const id{RegisterThread()};
@@ -116,6 +109,22 @@ struct TracerImpl {
     ++thread_count_;
     return &per_thread_events_.front();
   }
+
+  Token RegisterDurationEvent(std::string name, std::string tag) {
+    std::lock_guard<std::mutex> guard{register_event};
+    Token e{static_cast<int>(attributes_.size())};
+    attributes_.push_back({name, tag, Type::duration});
+    return e;
+  }
+
+  Token RegisterAsyncEvent(std::string name, std::string tag) {
+    std::lock_guard<std::mutex> guard{register_event};
+    Token e{static_cast<int>(attributes_.size())};
+    attributes_.push_back({name, tag, Type::async});
+    return e;
+  }
+
+  std::vector<Attributes> attributes_;
 
   int thread_count_{0};
   std::forward_list<Events> per_thread_events_;
@@ -133,7 +142,7 @@ struct TracerImpl {
       v.clear();
       it->events.pop_all(std::back_inserter(v));
       for (const auto &e : v) {
-        func(it->tid, e.name.as_string_view(), e.p, e.ts);
+        func(it->tid, attributes_[static_cast<std::size_t>(e.id)], e.p, e.ts);
       }
     }
   }
@@ -146,9 +155,9 @@ inline TracerImpl &Tracer() {
 
 class Span {
 public:
-  Span(TracerImpl &t, const view::string_view name) : t_{t.PerThreadEvents()} {
+  Span(TracerImpl &t, const Token e) : t_{t.PerThreadEvents()}, id_{e.id} {
     const auto now = std::chrono::steady_clock::time_point{}; // std::chrono::steady_clock::now();
-    t_->events.emplace(Phase::begin, now, name);
+    t_->events.emplace(id_, Phase::begin, now);
   }
   Span(const Span &) = delete;
   Span(Span &&) = delete;
@@ -161,12 +170,13 @@ public:
     if (nullptr == t_) {
       return;
     }
-    t_->events.emplace(Phase::end, now, view::string_view{""});
+    t_->events.emplace(id_, Phase::end, now);
     t_ = nullptr;
   }
 
 private:
   TracerImpl::Events *t_;
+  int id_;
 };
 
 } // namespace trace
