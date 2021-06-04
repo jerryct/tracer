@@ -147,7 +147,7 @@ inline TracerImpl &Tracer() {
 class Span {
 public:
   Span(TracerImpl &t, const jerryct::string_view name) : t_{t.PerThreadEvents()} {
-    const auto now = std::chrono::steady_clock::now();
+    const auto now = std::chrono::steady_clock::time_point{}; // std::chrono::steady_clock::now();
     t_->events.emplace(Phase::begin, now, name);
   }
   Span(const Span &) = delete;
@@ -157,7 +157,7 @@ public:
   ~Span() noexcept { End(); }
 
   void End() {
-    const auto now = std::chrono::steady_clock::now();
+    const auto now = std::chrono::steady_clock::time_point{}; // std::chrono::steady_clock::now();
     if (nullptr == t_) {
       return;
     }
