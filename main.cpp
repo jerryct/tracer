@@ -38,18 +38,18 @@ void Foo() {
 } // namespace
 
 int main() {
-  trace::Span s{trace::Tracer(), "main"};
-  for (int i = 0; i < 10; ++i) {
-    std::this_thread::sleep_for(std::chrono::milliseconds{1});
-    Foo();
-    Bar();
-  }
+  {
+    trace::Span s{trace::Tracer(), "main"};
+    for (int i = 0; i < 10; ++i) {
+      std::this_thread::sleep_for(std::chrono::milliseconds{1});
+      Foo();
+      Bar();
+    }
 
-  if (t.joinable()) {
-    t.join();
+    if (t.joinable()) {
+      t.join();
+    }
   }
-
-  s.End();
 
   trace::Tracer().Export(trace::AsChromeTracingJson{"pretty.json"});
 

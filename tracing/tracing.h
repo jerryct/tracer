@@ -146,24 +146,12 @@ inline TracerImpl &Tracer() {
 
 class Span {
 public:
-  Span(TracerImpl &t, const jerryct::string_view name) : t_{t.PerThreadEvents()} {
-    const auto now = std::chrono::steady_clock::time_point{}; // std::chrono::steady_clock::now();
-    t_->events.emplace(Phase::begin, now, name);
-  }
+  Span(TracerImpl &t, const jerryct::string_view name);
   Span(const Span &) = delete;
   Span(Span &&) = delete;
   Span &operator=(const Span &) = delete;
   Span &operator=(Span &&) = delete;
-  ~Span() noexcept { End(); }
-
-  void End() {
-    const auto now = std::chrono::steady_clock::time_point{}; // std::chrono::steady_clock::now();
-    if (nullptr == t_) {
-      return;
-    }
-    t_->events.emplace(Phase::end, now, jerryct::string_view{""});
-    t_ = nullptr;
-  }
+  ~Span() noexcept;
 
 private:
   TracerImpl::Events *t_;

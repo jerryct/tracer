@@ -46,19 +46,24 @@ add_subdirectory(../googletest _build/googletest)
 set(JERRYCT_STRING_VIEW_ENABLE_TESTING OFF CACHE BOOL "")
 add_subdirectory(../string_view _build/string_view)
 
+add_library(tracing
+  tracing/tracing.cpp
+)
+target_link_libraries(tracing PUBLIC jerryct::string_view Threads::Threads)
+
 add_executable(tracer
   main.cpp
 )
-target_link_libraries(tracer PRIVATE jerryct::string_view Threads::Threads)
+target_link_libraries(tracer PRIVATE tracing)
 
 add_executable(unit_tests
   tracer_unit_tests.cpp
 )
-target_link_libraries(unit_tests PRIVATE jerryct::string_view Threads::Threads gtest_main)
+target_link_libraries(unit_tests PRIVATE tracing gtest_main)
 add_test(unit_tests unit_tests)
 
 add_executable(benchmarks
   benchmark.cpp
 )
-target_link_libraries(benchmarks PRIVATE jerryct::string_view Threads::Threads benchmark::benchmark)
+target_link_libraries(benchmarks PRIVATE tracing benchmark::benchmark)
 
