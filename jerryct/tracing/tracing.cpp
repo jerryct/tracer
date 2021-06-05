@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 
-#include "tracing.h"
+#include "jerryct/tracing/tracing.h"
 
+namespace jerryct {
 namespace trace {
 
 Span::Span(TracerImpl &t, const jerryct::string_view name) : t_{t.PerThreadEvents()} {
@@ -15,3 +16,4 @@ Span::~Span() noexcept {
 }
 
 } // namespace trace
+} // namespace jerryct

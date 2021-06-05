@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 
-#ifndef TRACING_TRACING_H
-#define TRACING_TRACING_H
+#ifndef JERRYCT_TRACING_TRACING_H
+#define JERRYCT_TRACING_TRACING_H
 
 #include "jerryct/string_view.h"
 #include <atomic>
@@ -12,6 +12,7 @@
 #include <type_traits>
 #include <vector>
 
+namespace jerryct {
 namespace trace {
 
 enum class Phase { begin, end };
@@ -158,5 +159,6 @@ private:
 };
 
 } // namespace trace
+} // namespace jerryct
 
-#endif // TRACING_TRACING_H
+#endif // JERRYCT_TRACING_TRACING_H

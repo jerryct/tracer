@@ -1,14 +1,15 @@
 // SPDX-License-Identifier: MIT
 
-#ifndef TRACING_CHROME_TRACING_H
-#define TRACING_CHROME_TRACING_H
+#ifndef JERRYCT_TRACING_CHROME_TRACING_H
+#define JERRYCT_TRACING_CHROME_TRACING_H
 
+#include "jerryct/tracing/tracing.h"
 #include "nlohmann/json.hpp"
-#include "tracing.h"
 #include <chrono>
 #include <fstream>
 #include <string>
 
+namespace jerryct {
 namespace trace {
 
 struct AsChromeTracingJson {
@@ -33,5 +34,6 @@ struct AsChromeTracingJson {
 };
 
 } // namespace trace
+} // namespace jerryct
 
-#endif // TRACING_CHROME_TRACING_H
+#endif // JERRYCT_TRACING_CHROME_TRACING_H

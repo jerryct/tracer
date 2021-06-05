@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 
-#include "tracing/tracing.h"
+#include "jerryct/tracing/tracing.h"
 #include <benchmark/benchmark.h>
 
 namespace {
 
 void PerThreadEvents(benchmark::State &state) {
   for (auto _ : state) {
-    auto m = trace::Tracer().PerThreadEvents();
+    auto m = jerryct::trace::Tracer().PerThreadEvents();
     benchmark::DoNotOptimize(m);
     benchmark::ClobberMemory();
   }
@@ -16,15 +16,15 @@ void PerThreadEvents(benchmark::State &state) {
 void Span(benchmark::State &state) {
   auto name = std::string(64, 'c');
   for (auto _ : state) {
-    trace::Span s{trace::Tracer(), name};
-    trace::Tracer().PerThreadEvents()->events.consumer_all([](auto) {});
-    benchmark::DoNotOptimize(trace::Tracer().PerThreadEvents());
+    jerryct::trace::Span s{jerryct::trace::Tracer(), name};
+    jerryct::trace::Tracer().PerThreadEvents()->events.consumer_all([](auto) {});
+    benchmark::DoNotOptimize(jerryct::trace::Tracer().PerThreadEvents());
     benchmark::ClobberMemory();
   }
 }
 
 void LockFreeQueue(benchmark::State &state) {
-  trace::LockFreeQueue<int, 4> r{};
+  jerryct::trace::LockFreeQueue<int, 4> r{};
   for (auto _ : state) {
     r.emplace(1);
     r.emplace(2);

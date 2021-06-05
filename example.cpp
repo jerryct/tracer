@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 
-#include "tracing/chrome_tracing.h"
-#include "tracing/tracing.h"
+#include "jerryct/tracing/chrome_tracing.h"
+#include "jerryct/tracing/tracing.h"
 #include <thread>
 
 namespace {
@@ -13,24 +13,24 @@ void Async() {
     t.join();
   }
   t = std::thread{[]() {
-    trace::Span s2{trace::Tracer(), "Async"};
+    jerryct::trace::Span s2{jerryct::trace::Tracer(), "Async"};
     std::this_thread::sleep_for(std::chrono::milliseconds{42});
   }};
 }
 
 void Bar() {
-  trace::Span s{trace::Tracer(), "Bar"};
+  jerryct::trace::Span s{jerryct::trace::Tracer(), "Bar"};
   std::this_thread::sleep_for(std::chrono::milliseconds{42});
   Async();
 }
 
 void Baz() {
-  trace::Span s{trace::Tracer(), "Baz"};
+  jerryct::trace::Span s{jerryct::trace::Tracer(), "Baz"};
   std::this_thread::sleep_for(std::chrono::milliseconds{100});
 }
 
 void Foo() {
-  trace::Span s{trace::Tracer(), "Foo"};
+  jerryct::trace::Span s{jerryct::trace::Tracer(), "Foo"};
   std::this_thread::sleep_for(std::chrono::milliseconds{23});
   Baz();
 }
@@ -39,7 +39,7 @@ void Foo() {
 
 int main() {
   {
-    trace::Span s{trace::Tracer(), "main"};
+    jerryct::trace::Span s{jerryct::trace::Tracer(), "main"};
     for (int i = 0; i < 10; ++i) {
       std::this_thread::sleep_for(std::chrono::milliseconds{1});
       Foo();
@@ -51,7 +51,7 @@ int main() {
     }
   }
 
-  trace::Tracer().Export(trace::AsChromeTracingJson{"pretty.json"});
+  jerryct::trace::Tracer().Export(jerryct::trace::AsChromeTracingJson{"pretty.json"});
 
   return 0;
 }

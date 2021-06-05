@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: MIT
 
-#include "tracing/tracing.h"
+#include "jerryct/tracing/tracing.h"
 #include <algorithm>
 #include <gtest/gtest.h>
 #include <thread>
 #include <vector>
 
+namespace jerryct {
 namespace trace {
 namespace {
 
@@ -144,3 +145,4 @@ TEST(TracerTest, ASDF) {
 
 } // namespace
 } // namespace trace
+} // namespace jerryct

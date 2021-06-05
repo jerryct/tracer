@@ -5,7 +5,7 @@ enable_testing()
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_EXTENSIONS Off)
-set(DEFAULT_COPTS "-fno-omit-frame-pointer" "-g" "-Wall" "-Wextra" "-I" "${PROJECT_SOURCE_DIR}") # "-fno-builtin-memcpy" "-U_FORTIFY_SOURCE"
+set(DEFAULT_COPTS "-fno-omit-frame-pointer" "-g" "-Wall" "-Wextra") # "-fno-builtin-memcpy" "-U_FORTIFY_SOURCE"
 
 set(DEFAULT_LINKOPTS "")
 if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64" OR "${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "AMD64")
@@ -47,17 +47,21 @@ set(JERRYCT_STRING_VIEW_ENABLE_TESTING OFF CACHE BOOL "")
 add_subdirectory(../string_view _build/string_view)
 
 add_library(tracing
-  tracing/tracing.cpp
+  jerryct/tracing/tracing.cpp
+)
+target_include_directories(tracing PUBLIC
+  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
+  $<INSTALL_INTERFACE:.>
 )
 target_link_libraries(tracing PUBLIC jerryct::string_view Threads::Threads)
 
-add_executable(tracer
-  main.cpp
+add_executable(example
+  example.cpp
 )
-target_link_libraries(tracer PRIVATE tracing)
+target_link_libraries(example PRIVATE tracing)
 
 add_executable(unit_tests
-  tracer_unit_tests.cpp
+  jerryct/tracing/tracing_tests.cpp
 )
 target_link_libraries(unit_tests PRIVATE tracing gtest_main)
 add_test(unit_tests unit_tests)
