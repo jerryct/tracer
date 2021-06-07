@@ -62,25 +62,12 @@ template <typename T, std::uint32_t S> struct LockFreeQueue {
     head.store(the_next, std::memory_order_release);
   }
 
-  template <typename F> void consumer_all(F &&func) {
+  template <typename F> void consume_all(F &&func) {
     const std::uint32_t he = head.load(std::memory_order_acquire);
     std::uint32_t ta = tail.load(std::memory_order_relaxed);
 
     for (; ta != he;) {
       func(std::move(d[ta].value_));
-      ta = (ta + 1U) % S;
-    }
-
-    tail.store(ta, std::memory_order_release);
-  }
-
-  template <typename Iter> void pop_all(Iter it) {
-    const std::uint32_t he = head.load(std::memory_order_acquire);
-    std::uint32_t ta = tail.load(std::memory_order_relaxed);
-
-    for (; ta != he;) {
-      *it = std::move(d[ta].value_);
-      ++it;
       ta = (ta + 1U) % S;
     }
 
@@ -132,7 +119,7 @@ struct TracerImpl {
     }
     for (; it != per_thread_events_.end(); ++it) {
       v.clear();
-      it->events.pop_all(std::back_inserter(v));
+      it->events.consume_all([&v](Event &&e) { v.push_back(std::move(e)); });
       for (const auto &e : v) {
         func(it->tid, e.name.as_string_view(), e.p, e.ts);
       }

@@ -17,7 +17,7 @@ void Span(benchmark::State &state) {
   auto name = std::string(64, 'c');
   for (auto _ : state) {
     jerryct::trace::Span s{jerryct::trace::Tracer(), name};
-    jerryct::trace::Tracer().PerThreadEvents()->events.consumer_all([](auto) {});
+    jerryct::trace::Tracer().PerThreadEvents()->events.consume_all([](auto) {});
     benchmark::DoNotOptimize(jerryct::trace::Tracer().PerThreadEvents());
     benchmark::ClobberMemory();
   }
@@ -29,7 +29,7 @@ void LockFreeQueue(benchmark::State &state) {
     r.emplace(1);
     r.emplace(2);
     r.emplace(3);
-    r.consumer_all([](int) {});
+    r.consume_all([](int) {});
     benchmark::ClobberMemory();
   }
 }

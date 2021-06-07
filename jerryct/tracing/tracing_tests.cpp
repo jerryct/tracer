@@ -83,7 +83,7 @@ TEST(TracerTest, LockFreeQueue) {
   {
     std::vector<int> o;
     o.reserve(4);
-    r.pop_all(std::back_inserter(o));
+    r.consume_all([&o](int v) { o.push_back(v); });
     ASSERT_EQ(0, o.size());
   }
 
@@ -95,7 +95,7 @@ TEST(TracerTest, LockFreeQueue) {
   {
     std::vector<int> o;
     o.reserve(4);
-    r.pop_all(std::back_inserter(o));
+    r.consume_all([&o](int v) { o.push_back(v); });
     ASSERT_EQ(3, o.size());
     EXPECT_EQ(1, o[0]);
     EXPECT_EQ(2, o[1]);
@@ -110,7 +110,7 @@ TEST(TracerTest, LockFreeQueue) {
   {
     std::vector<int> o;
     o.reserve(4);
-    r.pop_all(std::back_inserter(o));
+    r.consume_all([&o](int v) { o.push_back(v); });
     ASSERT_EQ(3, o.size());
     EXPECT_EQ(5, o[0]);
     EXPECT_EQ(6, o[1]);
