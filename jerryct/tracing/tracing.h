@@ -34,6 +34,12 @@ struct fixed_string {
   size_t s_;
 };
 
+struct Event {
+  Phase p;
+  std::chrono::steady_clock::time_point ts;
+  fixed_string name;
+};
+
 template <typename T, std::uint32_t S> struct LockFreeQueue {
   struct ManualLifetime {
     ManualLifetime() noexcept {}
@@ -79,12 +85,6 @@ template <typename T, std::uint32_t S> struct LockFreeQueue {
 // https://opentelemetry.io/docs/concepts/data-sources/
 struct TracerImpl {
 
-  struct Event {
-    Phase p;
-    std::chrono::steady_clock::time_point ts;
-    fixed_string name;
-  };
-
   struct Events {
     int tid;
     LockFreeQueue<Event, 4096> events;
@@ -120,9 +120,7 @@ struct TracerImpl {
     for (; it != per_thread_events_.end(); ++it) {
       v.clear();
       it->events.consume_all([&v](Event &&e) { v.push_back(std::move(e)); });
-      for (const auto &e : v) {
-        func(it->tid, e.name.as_string_view(), e.p, e.ts);
-      }
+      func(it->tid, [&v]() -> const std::vector<Event> & { return v; }());
     }
   }
 };

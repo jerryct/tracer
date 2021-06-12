@@ -26,11 +26,12 @@ TEST(TracerTest, DurationEvent) {
   std::vector<std::tuple<std::string, Phase>> events{};
   std::vector<std::chrono::steady_clock::time_point> time_stamps{};
 
-  tracer.Export(
-      [&events, &time_stamps](int, jerryct::string_view name, Phase p, std::chrono::steady_clock::time_point ts) {
-        events.emplace_back(std::string{name.data(), name.size()}, p);
-        time_stamps.emplace_back(ts);
-      });
+  tracer.Export([&events, &time_stamps](const int, const std::vector<Event> &data) {
+    for (const Event &e : data) {
+      events.emplace_back(std::string{e.name.as_string_view().data(), e.name.as_string_view().size()}, e.p);
+      time_stamps.emplace_back(e.ts);
+    }
+  });
 
   ASSERT_EQ(8U, events.size());
 
@@ -57,9 +58,11 @@ TEST(TracerTest, Threaded) {
   std::vector<std::tuple<std::string, Phase>> events{};
   std::vector<int> tids{};
 
-  tracer.Export([&events, &tids](int tid, jerryct::string_view name, Phase p, std::chrono::steady_clock::time_point) {
-    events.emplace_back(std::string{name.data(), name.size()}, p);
-    tids.emplace_back(tid);
+  tracer.Export([&events, &tids](const int tid, const std::vector<Event> &data) {
+    for (const Event &e : data) {
+      events.emplace_back(std::string{e.name.as_string_view().data(), e.name.as_string_view().size()}, e.p);
+      tids.emplace_back(tid);
+    }
   });
 
   ASSERT_EQ(4U, events.size());

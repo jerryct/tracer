@@ -36,16 +36,18 @@ public:
   }
   bool IsValid() const { return f_ != nullptr; }
 
-  void operator()(const int tid, const jerryct::string_view name, const Phase p,
-                  const std::chrono::steady_clock::time_point ts) {
-    const auto d = std::chrono::duration<double, std::micro>{ts.time_since_epoch()}.count();
+  void operator()(const int tid, const std::vector<Event> &events) {
+    for (const Event &e : events) {
+      const auto d = std::chrono::duration<double, std::micro>{e.ts.time_since_epoch()}.count();
 
-    if (p == Phase::begin) {
-      fprintf(f_, R"(,{"name":"%.*s","pid":0,"tid":%d,"ph":"B","ts":%f})", static_cast<int>(name.size()), name.data(),
-              tid, d);
-    }
-    if (p == Phase::end) {
-      fprintf(f_, R"(,{"pid":0,"tid":%d,"ph":"E","ts":%f})", tid, d);
+      if (e.p == Phase::begin) {
+        const jerryct::string_view v{e.name.as_string_view()};
+        fprintf(f_, R"(,{"name":"%.*s","pid":0,"tid":%d,"ph":"B","ts":%f})", static_cast<int>(v.size()), v.data(), tid,
+                d);
+      }
+      if (e.p == Phase::end) {
+        fprintf(f_, R"(,{"pid":0,"tid":%d,"ph":"E","ts":%f})", tid, d);
+      }
     }
   }
 
