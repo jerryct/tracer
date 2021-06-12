@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 
+#include "jerryct/tracing/stats.h"
 #include "jerryct/tracing/tracing.h"
 #include <benchmark/benchmark.h>
 
@@ -20,6 +21,16 @@ void Span(benchmark::State &state) {
     jerryct::trace::Tracer().PerThreadEvents()->events.consume_all([](auto) {});
     benchmark::DoNotOptimize(jerryct::trace::Tracer().PerThreadEvents());
     benchmark::ClobberMemory();
+  }
+}
+
+void Export(benchmark::State &state) {
+  jerryct::trace::Stats stats{};
+
+  auto name = std::string(64, 'c');
+  for (auto _ : state) {
+    jerryct::trace::Span s{jerryct::trace::Tracer(), name};
+    jerryct::trace::Tracer().Export(stats);
   }
 }
 
@@ -55,6 +66,7 @@ void ClockGettime(benchmark::State &state) {
 
 BENCHMARK(PerThreadEvents);
 BENCHMARK(Span);
+BENCHMARK(Export);
 BENCHMARK(LockFreeQueue);
 BENCHMARK(Now);
 BENCHMARK(ClockGettime);
