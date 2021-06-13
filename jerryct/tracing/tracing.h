@@ -28,7 +28,7 @@ struct fixed_string {
     std::memmove(&d_[0], v.data(), s_);
   }
 
-  jerryct::string_view as_string_view() const { return {&d_[0], s_}; }
+  jerryct::string_view get() const { return {&d_[0], s_}; }
 
   char d_[64];
   size_t s_;

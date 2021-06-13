@@ -28,7 +28,7 @@ TEST(TracerTest, DurationEvent) {
 
   tracer.Export([&events, &time_stamps](const int, const std::vector<Event> &data) {
     for (const Event &e : data) {
-      events.emplace_back(std::string{e.name.as_string_view().data(), e.name.as_string_view().size()}, e.p);
+      events.emplace_back(std::string{e.name.get().data(), e.name.get().size()}, e.p);
       time_stamps.emplace_back(e.ts);
     }
   });
@@ -60,7 +60,7 @@ TEST(TracerTest, Threaded) {
 
   tracer.Export([&events, &tids](const int tid, const std::vector<Event> &data) {
     for (const Event &e : data) {
-      events.emplace_back(std::string{e.name.as_string_view().data(), e.name.as_string_view().size()}, e.p);
+      events.emplace_back(std::string{e.name.get().data(), e.name.get().size()}, e.p);
       tids.emplace_back(tid);
     }
   });

@@ -41,7 +41,7 @@ public:
       const auto d = std::chrono::duration<double, std::micro>{e.ts.time_since_epoch()}.count();
 
       if (e.p == Phase::begin) {
-        const jerryct::string_view v{e.name.as_string_view()};
+        const jerryct::string_view v{e.name.get()};
         fprintf(f_, R"(,{"name":"%.*s","pid":0,"tid":%d,"ph":"B","ts":%f})", static_cast<int>(v.size()), v.data(), tid,
                 d);
       }
