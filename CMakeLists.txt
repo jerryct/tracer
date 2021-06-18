@@ -71,7 +71,7 @@ target_compile_options(unit_tests PRIVATE "-Wall" "-Wextra" "-Wpedantic" "-Wform
 add_test(unit_tests unit_tests)
 
 add_executable(benchmarks
-  benchmark.cpp
+  jerryct/tracing/tracing_benchmark.cpp
 )
 target_link_libraries(benchmarks PRIVATE tracing benchmark::benchmark)
 target_compile_options(benchmarks PRIVATE "-Wall" "-Wextra" "-Wpedantic" "-Wformat=2")

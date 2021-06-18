@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-#include "jerryct/tracing/stats.h"
+#include "jerryct/tracing/stats_exporter.h"
 #include "jerryct/tracing/tracing.h"
 #include <benchmark/benchmark.h>
 
@@ -25,7 +25,7 @@ void Span(benchmark::State &state) {
 }
 
 void Export(benchmark::State &state) {
-  jerryct::trace::Stats stats{};
+  jerryct::trace::StatsExporter stats{};
 
   auto name = std::string(64, 'c');
   for (auto _ : state) {

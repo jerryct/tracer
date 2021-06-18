@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 
-#ifndef JERRYCT_TRACING_CHROME_TRACING_H
-#define JERRYCT_TRACING_CHROME_TRACING_H
+#ifndef JERRYCT_TRACING_CHROME_TRACE_EVENT_EXPORTER_H
+#define JERRYCT_TRACING_CHROME_TRACE_EVENT_EXPORTER_H
 
 #include "jerryct/tracing/tracing.h"
 #include <chrono>
@@ -11,24 +11,24 @@
 namespace jerryct {
 namespace trace {
 
-class AsChromeTracingJson {
+class ChromeTraceEventExporter {
 public:
-  AsChromeTracingJson(const std::string &filename) : f_{fopen(filename.c_str(), "w")} {
+  ChromeTraceEventExporter(const std::string &filename) : f_{fopen(filename.c_str(), "w")} {
     if (!IsValid()) {
       throw;
     }
     fprintf(f_, "[{}");
   }
-  AsChromeTracingJson(const AsChromeTracingJson &) = delete;
-  AsChromeTracingJson(AsChromeTracingJson &&other) noexcept : f_{other.f_} { other.f_ = nullptr; }
-  AsChromeTracingJson &operator=(const AsChromeTracingJson &) = delete;
-  AsChromeTracingJson &operator=(AsChromeTracingJson &&other) noexcept {
+  ChromeTraceEventExporter(const ChromeTraceEventExporter &) = delete;
+  ChromeTraceEventExporter(ChromeTraceEventExporter &&other) noexcept : f_{other.f_} { other.f_ = nullptr; }
+  ChromeTraceEventExporter &operator=(const ChromeTraceEventExporter &) = delete;
+  ChromeTraceEventExporter &operator=(ChromeTraceEventExporter &&other) noexcept {
     if (f_ != other.f_) {
       std::swap(f_, other.f_);
     }
     return *this;
   }
-  ~AsChromeTracingJson() noexcept {
+  ~ChromeTraceEventExporter() noexcept {
     if (IsValid()) {
       fprintf(f_, "]");
       fclose(f_);
@@ -58,4 +58,4 @@ private:
 } // namespace trace
 } // namespace jerryct
 
-#endif // JERRYCT_TRACING_CHROME_TRACING_H
+#endif // JERRYCT_TRACING_CHROME_TRACE_EVENT_EXPORTER_H

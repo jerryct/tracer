@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-#include "jerryct/tracing/chrome_tracing.h"
+#include "jerryct/tracing/chrome_trace_event_exporter.h"
 #include "jerryct/tracing/tracing.h"
 #include <thread>
 
@@ -51,7 +51,7 @@ int main() {
     }
   }
 
-  jerryct::trace::Tracer().Export(jerryct::trace::AsChromeTracingJson{"pretty.json"});
+  jerryct::trace::Tracer().Export(jerryct::trace::ChromeTraceEventExporter{"trace_event.json"});
 
   return 0;
 }

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 
-#ifndef JERRYCT_TRACING_STATS_H
-#define JERRYCT_TRACING_STATS_H
+#ifndef JERRYCT_TRACING_STATS_EXPORTER_H
+#define JERRYCT_TRACING_STATS_EXPORTER_H
 
 #include "jerryct/tracing/tracing.h"
 #include <algorithm>
@@ -14,7 +14,7 @@
 namespace jerryct {
 namespace trace {
 
-class Stats {
+class StatsExporter {
 
   struct E {
     const std::string name;
@@ -22,12 +22,12 @@ class Stats {
   };
 
 public:
-  Stats() = default;
-  Stats(const Stats &) = delete;
-  Stats(Stats &&other) noexcept = default;
-  Stats &operator=(const Stats &) = delete;
-  Stats &operator=(Stats &&other) noexcept = default;
-  ~Stats() noexcept { Print(); }
+  StatsExporter() = default;
+  StatsExporter(const StatsExporter &) = delete;
+  StatsExporter(StatsExporter &&other) noexcept = default;
+  StatsExporter &operator=(const StatsExporter &) = delete;
+  StatsExporter &operator=(StatsExporter &&other) noexcept = default;
+  ~StatsExporter() noexcept { Print(); }
 
   void operator()(const int tid, const std::vector<Event> &events) {
     for (const Event &e : events) {
@@ -63,4 +63,4 @@ private:
 } // namespace trace
 } // namespace jerryct
 
-#endif // JERRYCT_TRACING_STATS_H
+#endif // JERRYCT_TRACING_STATS_EXPORTER_H
