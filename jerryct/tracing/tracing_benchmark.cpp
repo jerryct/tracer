@@ -8,7 +8,7 @@ namespace {
 
 void PerThreadEvents(benchmark::State &state) {
   for (auto _ : state) {
-    auto m = jerryct::trace::Tracer().PerThreadEvents();
+    auto *m = jerryct::trace::Tracer().PerThreadEvents();
     benchmark::DoNotOptimize(m);
     benchmark::ClobberMemory();
   }
@@ -18,7 +18,7 @@ void Span(benchmark::State &state) {
   auto name = std::string(64, 'c');
   for (auto _ : state) {
     jerryct::trace::Span s{jerryct::trace::Tracer(), name};
-    jerryct::trace::Tracer().PerThreadEvents()->events.consume_all([](auto) {});
+    jerryct::trace::Tracer().PerThreadEvents()->events.consume_all([](auto /*unused*/) {});
     benchmark::DoNotOptimize(jerryct::trace::Tracer().PerThreadEvents());
     benchmark::ClobberMemory();
   }
@@ -40,7 +40,7 @@ void LockFreeQueue(benchmark::State &state) {
     r.emplace(1);
     r.emplace(2);
     r.emplace(3);
-    r.consume_all([](int) {});
+    r.consume_all([](int /*unused*/) {});
     benchmark::ClobberMemory();
   }
 }

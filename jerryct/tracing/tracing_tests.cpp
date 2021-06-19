@@ -26,7 +26,7 @@ TEST(TracerTest, DurationEvent) {
   std::vector<std::tuple<std::string, Phase>> events{};
   std::vector<std::chrono::steady_clock::time_point> time_stamps{};
 
-  tracer.Export([&events, &time_stamps](const int, const std::vector<Event> &data) {
+  tracer.Export([&events, &time_stamps](const int /*unused*/, const std::vector<Event> &data) {
     for (const Event &e : data) {
       events.emplace_back(std::string{e.name.get().data(), e.name.get().size()}, e.p);
       time_stamps.emplace_back(e.ts);
@@ -123,13 +123,13 @@ TEST(TracerTest, LockFreeQueue) {
 
 struct Foo {
   Foo() { printf("ctor\n"); }
-  Foo(Foo &) { printf("copy\n"); }
-  Foo(Foo &&) { printf("move\n"); }
-  Foo &operator=(Foo &) {
+  Foo(const Foo & /*unused*/) { printf("copy\n"); }
+  Foo(Foo && /*unused*/) { printf("move\n"); }
+  Foo &operator=(const Foo & /*unused*/) {
     printf("copyassign\n");
     return *this;
   }
-  Foo &operator=(Foo &&) {
+  Foo &operator=(Foo && /*unused*/) {
     printf("moveassign\n");
     return *this;
   }

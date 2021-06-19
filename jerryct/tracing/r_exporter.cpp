@@ -58,7 +58,7 @@ void EndFile(int fd) {
   write(fd, &header, sizeof(header));
 }
 
-void Serialize(int fd, const std::string &n, const std::vector<double> b) {
+void Serialize(int fd, const std::string &n, const std::vector<double> &b) {
   { // LISTSXP object: whole thing is packaged in a dotted pair list
     const unsigned v = 1026;
     write(fd, &v, sizeof(v));
