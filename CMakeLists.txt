@@ -47,8 +47,9 @@ set(JERRYCT_STRING_VIEW_ENABLE_TESTING OFF CACHE BOOL "")
 add_subdirectory(../string_view _build/string_view)
 
 add_library(tracing
-  jerryct/tracing/tracing.cpp
+  jerryct/tracing/prometheus_exporter.cpp
   jerryct/tracing/r_exporter.cpp
+  jerryct/tracing/tracing.cpp
 )
 target_include_directories(tracing PUBLIC
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>

@@ -1,0 +1,173 @@
+// SPDX-License-Identifier: MIT
+
+#include "jerryct/tracing/prometheus_exporter.h"
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/uio.h>
+#include <unistd.h>
+
+namespace jerryct {
+namespace trace {
+
+FileDesc::FileDesc(int fd) : fd_{fd} {}
+
+FileDesc::FileDesc(FileDesc &&other) noexcept : fd_{other.fd_} { other.fd_ = -1; }
+
+FileDesc &FileDesc::operator=(FileDesc &&other) noexcept {
+  if (fd_ != other.fd_) {
+    std::swap(fd_, other.fd_);
+  }
+  return *this;
+}
+
+FileDesc::~FileDesc() noexcept {
+  if (IsValid()) {
+    ::close(fd_);
+  }
+}
+
+bool FileDesc::IsValid() const { return fd_ != -1; }
+
+JoinThread::JoinThread(JoinThread &&other) noexcept : stop_token_{-1}, t_{} {
+  std::swap(stop_token_, other.stop_token_);
+  std::swap(t_, other.t_);
+}
+
+JoinThread &JoinThread::operator=(JoinThread &&other) noexcept {
+  if (t_.joinable()) {
+    ::shutdown(stop_token_, SHUT_RDWR);
+    t_.join();
+  }
+  std::swap(stop_token_, other.stop_token_);
+  std::swap(t_, other.t_);
+
+  return *this;
+}
+
+JoinThread::~JoinThread() {
+  if (t_.joinable()) {
+    ::shutdown(stop_token_, SHUT_RDWR);
+    t_.join();
+  }
+}
+
+RequestHandler::RequestHandler(FileDesc fd) : fd_{std::move(fd)} {
+  request_.resize(32000);
+  response_.reserve(1024);
+  content_.reserve(1024);
+}
+
+void RequestHandler::operator()(PrometheusExporter &exporter) {
+  while (true) {
+    if (::read(fd_.fd_, request_.data(), request_.size()) <= 0) {
+      break;
+    }
+
+    exporter.Expose(content_);
+
+    response_.append("HTTP/1.1 200 OK\r\nContent-Type: text/plain; version=0.0.4\r\nContent-Length: ");
+    response_.append(std::to_string(content_.size()));
+    response_.append("\r\n\r\n");
+
+    std::array<iovec, 2> v;
+    v[0].iov_base = &response_[0];
+    v[0].iov_len = response_.size();
+    v[1].iov_base = &content_[0];
+    v[1].iov_len = content_.size();
+    if (::writev(fd_.fd_, v.data(), v.size()) < 0) {
+      break;
+    }
+
+    response_.clear();
+    content_.clear();
+  }
+}
+
+ConnectionHandler::ConnectionHandler(PrometheusExporter &exporter)
+    : fd_{::socket(AF_INET, SOCK_STREAM, 0)}, connections_{}, awaiter_{} {
+  if (!fd_.IsValid()) {
+    throw;
+  }
+
+  sockaddr_in address{};
+  address.sin_family = AF_INET;
+  address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+  address.sin_port = htons(9110);
+
+  const int reuse{1};
+  if (::setsockopt(fd_.fd_, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0) {
+    throw;
+  }
+
+  if (::bind(fd_.fd_, reinterpret_cast<sockaddr *>(&address), sizeof(address)) < 0) {
+    throw;
+  }
+  if (::listen(fd_.fd_, 2) < 0) {
+    throw;
+  }
+
+  awaiter_ = JoinThread{fd_.fd_, &ConnectionHandler::Await, this, std::ref(exporter)};
+}
+
+void ConnectionHandler::Await(PrometheusExporter &exporter) {
+  while (true) {
+    const int new_socket{::accept(fd_.fd_, nullptr, nullptr)};
+    if (new_socket < 0) {
+      break;
+    }
+
+    connections_.emplace_back(new_socket, RequestHandler{new_socket}, std::ref(exporter));
+  }
+}
+
+void PrometheusExporter::operator()(const int tid, const std::uint64_t losts, const std::vector<Event> &events) {
+  std::lock_guard<std::mutex> lk{m_};
+  for (const Event &e : events) {
+    switch (e.p) {
+    case Phase::begin:
+      stacks_[tid].push_back({{e.name.get().data(), e.name.get().size()}, e.ts});
+      break;
+    case Phase::end:
+      if (!stacks_[tid].empty()) {
+        const auto d = std::chrono::duration<double>{e.ts - stacks_[tid].back().ts}.count();
+        data_[stacks_[tid].back().name].sum += d;
+        ++data_[stacks_[tid].back().name].count;
+        stacks_[tid].pop_back();
+      }
+      break;
+    }
+  }
+  losts_[tid] = losts;
+}
+
+void PrometheusExporter::Expose(std::string &content) {
+  std::lock_guard<std::mutex> lk{m_};
+  content.append("# TYPE duration_seconds_sum counter\n");
+  for (auto &v : data_) {
+    content.append("duration_seconds_sum{name=\"");
+    content.append(v.first);
+    content.append("\"} ");
+    content.append(std::to_string(v.second.sum));
+    content.append("\n");
+  }
+  content.append("# TYPE duration_seconds_count counter\n");
+  for (auto &v : data_) {
+    content.append("duration_seconds_count{name=\"");
+    content.append(v.first);
+    content.append("\"} ");
+    content.append(std::to_string(v.second.count));
+    content.append("\n");
+  }
+  content.append("# TYPE lost_events_total counter\n");
+  for (const auto &v : losts_) {
+    content.append("lost_events_total{tid=\"");
+    content.append(std::to_string(v.first));
+    content.append("\"} ");
+    content.append(std::to_string(v.second));
+    content.append("\n");
+  }
+}
+
+} // namespace trace
+} // namespace jerryct
