@@ -13,12 +13,6 @@ namespace jerryct {
 namespace trace {
 
 class RExporter {
-
-  struct E {
-    const std::string name;
-    const std::chrono::steady_clock::time_point ts;
-  };
-
 public:
   RExporter(const std::string &filename);
   RExporter(const RExporter &) = delete;
@@ -30,8 +24,13 @@ public:
   void operator()(const int tid, const std::vector<Event> &events);
 
 private:
+  struct Frame {
+    const std::string name;
+    const std::chrono::steady_clock::time_point ts;
+  };
+
   std::unordered_map<std::string, std::vector<double>> data_;
-  std::unordered_map<int, std::vector<E>> stacks_;
+  std::unordered_map<int, std::vector<Frame>> stacks_;
 
   int fd_;
 };

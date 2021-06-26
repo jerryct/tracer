@@ -15,12 +15,6 @@ namespace jerryct {
 namespace trace {
 
 class StatsExporter {
-
-  struct E {
-    const std::string name;
-    const std::chrono::steady_clock::time_point ts;
-  };
-
 public:
   StatsExporter() = default;
   StatsExporter(const StatsExporter &) = delete;
@@ -56,8 +50,13 @@ public:
   }
 
 private:
+  struct Frame {
+    const std::string name;
+    const std::chrono::steady_clock::time_point ts;
+  };
+
   std::unordered_map<std::string, std::vector<double>> data_;
-  std::unordered_map<int, std::vector<E>> stacks_;
+  std::unordered_map<int, std::vector<Frame>> stacks_;
 };
 
 } // namespace trace
