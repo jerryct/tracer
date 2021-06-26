@@ -36,7 +36,7 @@ public:
   }
   bool IsValid() const { return f_ != nullptr; }
 
-  void operator()(const int tid, const std::vector<Event> &events) {
+  void operator()(const int tid, const std::uint64_t losts, const std::vector<Event> &events) {
     for (const Event &e : events) {
       const auto d = std::chrono::duration<double, std::micro>{e.ts.time_since_epoch()}.count();
 
@@ -49,6 +49,8 @@ public:
         fprintf(f_, R"(,{"pid":0,"tid":%d,"ph":"E","ts":%f})", tid, d);
       }
     }
+    const auto d = std::chrono::duration<double, std::micro>{std::chrono::steady_clock::now().time_since_epoch()};
+    fprintf(f_, R"(,{"pid":0,"name":"total lost events","ph":"C","ts":%f,"args":{"value":%lu}})", d.count(), losts);
   }
 
 private:

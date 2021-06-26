@@ -23,7 +23,7 @@ public:
   StatsExporter &operator=(StatsExporter &&other) noexcept = default;
   ~StatsExporter() noexcept { Print(); }
 
-  void operator()(const int tid, const std::vector<Event> &events) {
+  void operator()(const int tid, const std::uint64_t losts, const std::vector<Event> &events) {
     for (const Event &e : events) {
       switch (e.p) {
       case Phase::begin:
@@ -38,15 +38,23 @@ public:
         break;
       }
     }
+    losts_[tid] = losts;
   }
 
   void Print() {
-    printf("min         max         mean        count   name\n");
+    printf("           min            max           mean   count name\n");
     for (auto &d : data_) {
       const auto mean = std::accumulate(d.second.begin(), d.second.end(), 0.0) / static_cast<double>(d.second.size());
       const auto minmax = std::minmax_element(d.second.begin(), d.second.end());
-      printf("%11.6f %11.6f %11.6f %7zu %s\n", *minmax.first, *minmax.second, mean, d.second.size(), d.first.c_str());
+      printf("%11.6f ms %11.6f ms %11.6f ms %7zu %s\n", *minmax.first, *minmax.second, mean, d.second.size(),
+             d.first.c_str());
     }
+
+    std::uint64_t total{};
+    for (const auto &l : losts_) {
+      total += l.second;
+    }
+    printf("                                             %7lu total lost event(s)\n", total);
   }
 
 private:
@@ -57,6 +65,7 @@ private:
 
   std::unordered_map<std::string, std::vector<double>> data_;
   std::unordered_map<int, std::vector<Frame>> stacks_;
+  std::unordered_map<int, std::uint64_t> losts_;
 };
 
 } // namespace trace

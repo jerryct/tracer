@@ -26,12 +26,14 @@ TEST(TracerTest, DurationEvent) {
   std::vector<std::tuple<std::string, Phase>> events{};
   std::vector<std::chrono::steady_clock::time_point> time_stamps{};
 
-  tracer.Export([&events, &time_stamps](const int /*unused*/, const std::vector<Event> &data) {
-    for (const Event &e : data) {
-      events.emplace_back(std::string{e.name.get().data(), e.name.get().size()}, e.p);
-      time_stamps.emplace_back(e.ts);
-    }
-  });
+  tracer.Export(
+      [&events, &time_stamps](const int /*unused*/, const std::uint64_t losts, const std::vector<Event> &data) {
+        EXPECT_EQ(0U, losts);
+        for (const Event &e : data) {
+          events.emplace_back(std::string{e.name.get().data(), e.name.get().size()}, e.p);
+          time_stamps.emplace_back(e.ts);
+        }
+      });
 
   ASSERT_EQ(8U, events.size());
 
@@ -58,7 +60,8 @@ TEST(TracerTest, Threaded) {
   std::vector<std::tuple<std::string, Phase>> events{};
   std::vector<int> tids{};
 
-  tracer.Export([&events, &tids](const int tid, const std::vector<Event> &data) {
+  tracer.Export([&events, &tids](const int tid, const std::uint64_t losts, const std::vector<Event> &data) {
+    EXPECT_EQ(0U, losts);
     for (const Event &e : data) {
       events.emplace_back(std::string{e.name.get().data(), e.name.get().size()}, e.p);
       tids.emplace_back(tid);
@@ -100,6 +103,7 @@ TEST(TracerTest, LockFreeQueue) {
     o.reserve(4);
     r.consume_all([&o](int v) { o.push_back(v); });
     ASSERT_EQ(3, o.size());
+    EXPECT_EQ(1U, r.losts());
     EXPECT_EQ(1, o[0]);
     EXPECT_EQ(2, o[1]);
     EXPECT_EQ(3, o[2]);
@@ -115,6 +119,7 @@ TEST(TracerTest, LockFreeQueue) {
     o.reserve(4);
     r.consume_all([&o](int v) { o.push_back(v); });
     ASSERT_EQ(3, o.size());
+    EXPECT_EQ(2U, r.losts());
     EXPECT_EQ(5, o[0]);
     EXPECT_EQ(6, o[1]);
     EXPECT_EQ(7, o[2]);

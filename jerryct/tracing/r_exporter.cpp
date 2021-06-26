@@ -126,7 +126,7 @@ RExporter::~RExporter() noexcept {
   close(fd_);
 }
 
-void RExporter::operator()(const int tid, const std::vector<Event> &events) {
+void RExporter::operator()(const int tid, const std::uint64_t /*unused*/, const std::vector<Event> &events) {
   for (const Event &e : events) {
     switch (e.p) {
     case Phase::begin:
