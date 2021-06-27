@@ -145,38 +145,61 @@ void PrometheusExporter::operator()(const int tid, const std::uint64_t losts, co
   losts_[tid] = losts;
 }
 
+namespace {
+
+void to_chars(const std::int64_t v, std::string &s) {
+  static_assert(20 == std::numeric_limits<std::uint64_t>::digits10 + 1, "");
+  constexpr int buffer_length = 21; // 20 digits + sign
+
+  uint64_t value = v;
+  if (v < 0) {
+    value = ~value + 1U;
+  }
+  char temp[buffer_length];
+  char *p = &temp[buffer_length];
+  do {
+    --p;
+    *p = static_cast<char>(static_cast<char>(value % 10U) + '0');
+    value /= 10U;
+  } while (value > 0);
+  if (v < 0) {
+    *--p = '-';
+  }
+
+  s.append(p, &temp[buffer_length] - p);
+}
+
+} // namespace
+
 void PrometheusExporter::Expose(std::string &content) {
   std::lock_guard<std::mutex> lk{m_};
-  content.append("# TYPE duration_seconds summary\n");
+  content.append("# TYPE duration_nanoseconds summary\n");
   for (auto &v : data_) {
-    content.append("duration_seconds{name=\"");
+    content.append("duration_nanoseconds{name=\"");
     content.append(v.first);
     content.append("\",quantile=\"0\"} ");
-    content.append(std::to_string(std::chrono::duration<double>(v.second.min).count()));
-    content.append("\n");
-    content.append("duration_seconds{name=\"");
+    to_chars(v.second.min.count(), content);
+    content.append("\nduration_nanoseconds{name=\"");
     content.append(v.first);
     content.append("\",quantile=\"1\"} ");
-    content.append(std::to_string(std::chrono::duration<double>(v.second.max).count()));
-    content.append("\n");
-    content.append("duration_seconds_sum{name=\"");
+    to_chars(v.second.max.count(), content);
+    content.append("\nduration_nanoseconds_sum{name=\"");
     content.append(v.first);
     content.append("\"} ");
-    content.append(std::to_string(std::chrono::duration<double>(v.second.sum).count()));
-    content.append("\n");
-    content.append("duration_seconds_count{name=\"");
+    to_chars(v.second.sum.count(), content);
+    content.append("\nduration_nanoseconds_count{name=\"");
     content.append(v.first);
     content.append("\"} ");
-    content.append(std::to_string(v.second.count));
+    to_chars(v.second.count, content);
     content.append("\n");
   }
 
   content.append("# TYPE lost_events_total counter\n");
   for (const auto &v : losts_) {
     content.append("lost_events_total{tid=\"");
-    content.append(std::to_string(v.first));
+    to_chars(v.first, content);
     content.append("\"} ");
-    content.append(std::to_string(v.second));
+    to_chars(v.second, content);
     content.append("\n");
   }
 }
