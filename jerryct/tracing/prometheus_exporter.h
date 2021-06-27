@@ -77,8 +77,10 @@ public:
 
 private:
   struct Metrics {
-    double sum;
-    std::int64_t count;
+    std::chrono::nanoseconds min{std::chrono::nanoseconds::max()};
+    std::chrono::nanoseconds max{};
+    std::chrono::nanoseconds sum{};
+    std::int64_t count{};
   };
 
   struct Frame {

@@ -131,8 +131,10 @@ void PrometheusExporter::operator()(const int tid, const std::uint64_t losts, co
       break;
     case Phase::end:
       if (!stack.empty()) {
-        const auto d = std::chrono::duration<double>{e.ts - stack.back().ts}.count();
         auto &data = data_[stack.back().name];
+        const auto d = e.ts - stack.back().ts;
+        data.min = d < data.min ? d : data.min;
+        data.max = d > data.max ? d : data.max;
         data.sum += d;
         ++data.count;
         stack.pop_back();
@@ -145,22 +147,30 @@ void PrometheusExporter::operator()(const int tid, const std::uint64_t losts, co
 
 void PrometheusExporter::Expose(std::string &content) {
   std::lock_guard<std::mutex> lk{m_};
-  content.append("# TYPE duration_seconds_sum counter\n");
+  content.append("# TYPE duration_seconds summary\n");
   for (auto &v : data_) {
+    content.append("duration_seconds{name=\"");
+    content.append(v.first);
+    content.append("\",quantile=\"0\"} ");
+    content.append(std::to_string(std::chrono::duration<double>(v.second.min).count()));
+    content.append("\n");
+    content.append("duration_seconds{name=\"");
+    content.append(v.first);
+    content.append("\",quantile=\"1\"} ");
+    content.append(std::to_string(std::chrono::duration<double>(v.second.max).count()));
+    content.append("\n");
     content.append("duration_seconds_sum{name=\"");
     content.append(v.first);
     content.append("\"} ");
-    content.append(std::to_string(v.second.sum));
+    content.append(std::to_string(std::chrono::duration<double>(v.second.sum).count()));
     content.append("\n");
-  }
-  content.append("# TYPE duration_seconds_count counter\n");
-  for (auto &v : data_) {
     content.append("duration_seconds_count{name=\"");
     content.append(v.first);
     content.append("\"} ");
     content.append(std::to_string(v.second.count));
     content.append("\n");
   }
+
   content.append("# TYPE lost_events_total counter\n");
   for (const auto &v : losts_) {
     content.append("lost_events_total{tid=\"");

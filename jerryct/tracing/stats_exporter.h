@@ -4,12 +4,11 @@
 #define JERRYCT_TRACING_STATS_EXPORTER_H
 
 #include "jerryct/tracing/tracing.h"
-#include <algorithm>
 #include <chrono>
 #include <cstdio>
-#include <numeric>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 namespace jerryct {
 namespace trace {
@@ -32,8 +31,12 @@ public:
         break;
       case Phase::end:
         if (!stack.empty()) {
-          const auto d = std::chrono::duration<double, std::milli>{e.ts - stack.back().ts}.count();
-          data_[stack.back().name].push_back(d);
+          auto &data = data_[stack.back().name];
+          const auto d = e.ts - stack.back().ts;
+          data.min = d < data.min ? d : data.min;
+          data.max = d > data.max ? d : data.max;
+          data.sum += d;
+          ++data.count;
           stack.pop_back();
         }
         break;
@@ -45,10 +48,8 @@ public:
   void Print() {
     printf("           min            max           mean   count name\n");
     for (auto &d : data_) {
-      const auto mean = std::accumulate(d.second.begin(), d.second.end(), 0.0) / static_cast<double>(d.second.size());
-      const auto minmax = std::minmax_element(d.second.begin(), d.second.end());
-      printf("%11.6f ms %11.6f ms %11.6f ms %7zu %s\n", *minmax.first, *minmax.second, mean, d.second.size(),
-             d.first.c_str());
+      printf("%11lu ns %11lu ns %11lu ns %7zu %s\n", d.second.min.count(), d.second.max.count(),
+             d.second.sum.count() / d.second.count, d.second.count, d.first.c_str());
     }
 
     std::uint64_t total{};
@@ -59,12 +60,19 @@ public:
   }
 
 private:
+  struct Metrics {
+    std::chrono::nanoseconds min{std::chrono::nanoseconds::max()};
+    std::chrono::nanoseconds max{};
+    std::chrono::nanoseconds sum{};
+    std::int64_t count{};
+  };
+
   struct Frame {
     const std::string name;
     const std::chrono::steady_clock::time_point ts;
   };
 
-  std::unordered_map<std::string, std::vector<double>> data_;
+  std::unordered_map<std::string, Metrics> data_;
   std::unordered_map<int, std::vector<Frame>> stacks_;
   std::unordered_map<int, std::uint64_t> losts_;
 };
