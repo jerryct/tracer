@@ -123,17 +123,19 @@ void ConnectionHandler::Await(PrometheusExporter &exporter) {
 
 void PrometheusExporter::operator()(const int tid, const std::uint64_t losts, const std::vector<Event> &events) {
   std::lock_guard<std::mutex> lk{m_};
+  auto &stack = stacks_[tid];
   for (const Event &e : events) {
     switch (e.p) {
     case Phase::begin:
-      stacks_[tid].push_back({{e.name.get().data(), e.name.get().size()}, e.ts});
+      stack.push_back({{e.name.get().data(), e.name.get().size()}, e.ts});
       break;
     case Phase::end:
-      if (!stacks_[tid].empty()) {
-        const auto d = std::chrono::duration<double>{e.ts - stacks_[tid].back().ts}.count();
-        data_[stacks_[tid].back().name].sum += d;
-        ++data_[stacks_[tid].back().name].count;
-        stacks_[tid].pop_back();
+      if (!stack.empty()) {
+        const auto d = std::chrono::duration<double>{e.ts - stack.back().ts}.count();
+        auto &data = data_[stack.back().name];
+        data.sum += d;
+        ++data.count;
+        stack.pop_back();
       }
       break;
     }

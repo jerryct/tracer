@@ -127,16 +127,17 @@ RExporter::~RExporter() noexcept {
 }
 
 void RExporter::operator()(const int tid, const std::uint64_t /*unused*/, const std::vector<Event> &events) {
+  auto &stack = stacks_[tid];
   for (const Event &e : events) {
     switch (e.p) {
     case Phase::begin:
-      stacks_[tid].push_back({{e.name.get().data(), e.name.get().size()}, e.ts});
+      stack.push_back({{e.name.get().data(), e.name.get().size()}, e.ts});
       break;
     case Phase::end:
-      if (!stacks_[tid].empty()) {
-        const auto d = std::chrono::duration<double, std::milli>{e.ts - stacks_[tid].back().ts}.count();
-        data_[stacks_[tid].back().name].push_back(d);
-        stacks_[tid].pop_back();
+      if (!stack.empty()) {
+        const auto d = std::chrono::duration<double, std::milli>{e.ts - stack.back().ts}.count();
+        data_[stack.back().name].push_back(d);
+        stack.pop_back();
       }
       break;
     }
