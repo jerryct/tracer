@@ -49,15 +49,15 @@ template <typename T, std::uint32_t S> struct LockFreeQueue {
     };
   };
 
-  alignas(64) std::atomic<std::uint32_t> head;
-  alignas(64) std::atomic<std::uint32_t> tail;
+  alignas(64) std::atomic<std::uint32_t> head_;
+  alignas(64) std::atomic<std::uint32_t> tail_;
   alignas(64) std::atomic<std::uint64_t> losts_;
-  alignas(64) ManualLifetime d[S];
+  alignas(64) ManualLifetime d_[S];
   static_assert(std::is_trivially_destructible<T>::value, "");
 
   template <typename... U> void emplace(U &&... us) {
-    const std::uint32_t ta = tail.load(std::memory_order_acquire);
-    std::uint32_t he = head.load(std::memory_order_relaxed);
+    const std::uint32_t ta = tail_.load(std::memory_order_acquire);
+    std::uint32_t he = head_.load(std::memory_order_relaxed);
 
     const std::uint32_t the_next = (he + 1U) % S;
 
@@ -66,20 +66,20 @@ template <typename T, std::uint32_t S> struct LockFreeQueue {
       return;
     }
 
-    new (&d[he]) T{std::forward<U>(us)...};
-    head.store(the_next, std::memory_order_release);
+    new (&d_[he]) T{std::forward<U>(us)...};
+    head_.store(the_next, std::memory_order_release);
   }
 
   template <typename F> void consume_all(F &&func) {
-    const std::uint32_t he = head.load(std::memory_order_acquire);
-    std::uint32_t ta = tail.load(std::memory_order_relaxed);
+    const std::uint32_t he = head_.load(std::memory_order_acquire);
+    std::uint32_t ta = tail_.load(std::memory_order_relaxed);
 
     for (; ta != he;) {
-      func(std::move(d[ta].value_));
+      func(std::move(d_[ta].value_));
       ta = (ta + 1U) % S;
     }
 
-    tail.store(ta, std::memory_order_release);
+    tail_.store(ta, std::memory_order_release);
   }
 
   std::uint64_t losts() const { return losts_.load(std::memory_order_acquire); }
@@ -94,7 +94,7 @@ struct TracerImpl {
     LockFreeQueue<Event, 4096> events;
   };
 
-  std::mutex register_thread;
+  std::mutex register_thread_;
 
   Events *PerThreadEvents() {
     thread_local Events *const id{RegisterThread()};
@@ -102,7 +102,7 @@ struct TracerImpl {
   }
 
   Events *RegisterThread() {
-    std::lock_guard<std::mutex> guard{register_thread};
+    std::lock_guard<std::mutex> guard{register_thread_};
     per_thread_events_.emplace_front();
     per_thread_events_.front().tid = thread_count_;
     ++thread_count_;
@@ -118,7 +118,7 @@ struct TracerImpl {
 
     std::forward_list<Events>::iterator it;
     {
-      std::lock_guard<std::mutex> guard{register_thread};
+      std::lock_guard<std::mutex> guard{register_thread_};
       it = per_thread_events_.begin();
     }
     for (; it != per_thread_events_.end(); ++it) {
