@@ -51,7 +51,7 @@ template <typename T, std::uint32_t S> struct LockFreeQueue {
 
   alignas(64) std::atomic<std::uint32_t> head_;
   alignas(64) std::atomic<std::uint32_t> tail_;
-  alignas(64) std::atomic<std::uint64_t> losts_;
+  alignas(64) std::atomic<std::int64_t> losts_;
   alignas(64) ManualLifetime d_[S];
   static_assert(std::is_trivially_destructible<T>::value, "");
 
@@ -62,7 +62,7 @@ template <typename T, std::uint32_t S> struct LockFreeQueue {
     const std::uint32_t the_next = (he + 1U) % S;
 
     if (the_next == ta) {
-      losts_.fetch_add(1U, std::memory_order_release);
+      losts_.fetch_add(1, std::memory_order_release);
       return;
     }
 
@@ -82,7 +82,7 @@ template <typename T, std::uint32_t S> struct LockFreeQueue {
     tail_.store(ta, std::memory_order_release);
   }
 
-  std::uint64_t losts() const { return losts_.load(std::memory_order_acquire); }
+  std::int64_t losts() const { return losts_.load(std::memory_order_acquire); }
 };
 
 // a thread must not outlive a tracer

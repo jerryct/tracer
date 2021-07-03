@@ -22,7 +22,7 @@ public:
   StatsExporter &operator=(StatsExporter &&other) noexcept = default;
   ~StatsExporter() noexcept { Print(); }
 
-  void operator()(const int tid, const std::uint64_t losts, const std::vector<Event> &events) {
+  void operator()(const int tid, const std::int64_t losts, const std::vector<Event> &events) {
     auto &stack = stacks_[tid];
     for (const Event &e : events) {
       switch (e.p) {
@@ -52,11 +52,11 @@ public:
              d.second.sum.count() / d.second.count, d.second.count, d.first.c_str());
     }
 
-    std::uint64_t total{};
+    std::int64_t total{};
     for (const auto &l : losts_) {
       total += l.second;
     }
-    printf("                                             %7lu total lost event(s)\n", total);
+    printf("                                             %7ld total lost event(s)\n", total);
   }
 
 private:
@@ -74,7 +74,7 @@ private:
 
   std::unordered_map<std::string, Metrics> data_;
   std::unordered_map<int, std::vector<Frame>> stacks_;
-  std::unordered_map<int, std::uint64_t> losts_;
+  std::unordered_map<int, std::int64_t> losts_;
 };
 
 } // namespace trace

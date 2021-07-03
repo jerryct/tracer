@@ -21,7 +21,7 @@ public:
   RExporter &operator=(RExporter &&other) noexcept;
   ~RExporter() noexcept;
 
-  void operator()(const int tid, const std::uint64_t /*unused*/, const std::vector<Event> &events);
+  void operator()(const int tid, const std::int64_t /*unused*/, const std::vector<Event> &events);
 
 private:
   struct Frame {

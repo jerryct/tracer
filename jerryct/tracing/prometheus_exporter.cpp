@@ -121,7 +121,7 @@ void ConnectionHandler::Await(PrometheusExporter &exporter) {
   }
 }
 
-void PrometheusExporter::operator()(const int tid, const std::uint64_t losts, const std::vector<Event> &events) {
+void PrometheusExporter::operator()(const int tid, const std::int64_t losts, const std::vector<Event> &events) {
   std::lock_guard<std::mutex> lk{m_};
   auto &stack = stacks_[tid];
   for (const Event &e : events) {
