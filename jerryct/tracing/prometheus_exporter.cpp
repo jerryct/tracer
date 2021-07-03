@@ -151,7 +151,7 @@ void to_chars(const std::int64_t v, std::string &s) {
   static_assert(20 == std::numeric_limits<std::uint64_t>::digits10 + 1, "");
   constexpr int buffer_length = 21; // 20 digits + sign
 
-  uint64_t value = v;
+  uint64_t value = static_cast<std::uint64_t>(v);
   if (v < 0) {
     value = ~value + 1U;
   }
@@ -166,7 +166,7 @@ void to_chars(const std::int64_t v, std::string &s) {
     *--p = '-';
   }
 
-  s.append(p, &temp[buffer_length] - p);
+  s.append(p, static_cast<std::size_t>(&temp[buffer_length] - p));
 }
 
 } // namespace

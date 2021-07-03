@@ -56,23 +56,23 @@ target_include_directories(tracing PUBLIC
   $<INSTALL_INTERFACE:.>
 )
 target_link_libraries(tracing PUBLIC jerryct::string_view Threads::Threads)
-target_compile_options(tracing PRIVATE "-Wall" "-Wextra" "-Wpedantic" "-Wformat=2")
+target_compile_options(tracing PRIVATE "-Wall" "-Wextra" "-Wpedantic" "-Wformat=2" "-Wconversion")
 
 add_executable(example
   example.cpp
 )
 target_link_libraries(example PRIVATE tracing)
-target_compile_options(example PRIVATE "-Wall" "-Wextra" "-Wpedantic" "-Wformat=2")
+target_compile_options(example PRIVATE "-Wall" "-Wextra" "-Wpedantic" "-Wformat=2" "-Wconversion")
 
 add_executable(unit_tests
   jerryct/tracing/tracing_tests.cpp
 )
 target_link_libraries(unit_tests PRIVATE tracing gtest_main)
-target_compile_options(unit_tests PRIVATE "-Wall" "-Wextra" "-Wpedantic" "-Wformat=2")
+target_compile_options(unit_tests PRIVATE "-Wall" "-Wextra" "-Wpedantic" "-Wformat=2" "-Wconversion")
 add_test(unit_tests unit_tests)
 
 add_executable(benchmarks
   jerryct/tracing/tracing_benchmark.cpp
 )
 target_link_libraries(benchmarks PRIVATE tracing benchmark::benchmark)
-target_compile_options(benchmarks PRIVATE "-Wall" "-Wextra" "-Wpedantic" "-Wformat=2")
+target_compile_options(benchmarks PRIVATE "-Wall" "-Wextra" "-Wpedantic" "-Wformat=2" "-Wconversion")
