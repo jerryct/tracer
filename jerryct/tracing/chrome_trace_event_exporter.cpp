@@ -31,10 +31,10 @@ File::~File() noexcept {
 bool File::IsValid() const { return f_ != nullptr; }
 
 ChromeTraceEventExporter::ChromeTraceEventExporter(const std::string &filename) : f_{filename} {
-  fprintf(f_.f_, "[{}");
+  fprintf(f_.Get(), "[{}");
 }
 
-ChromeTraceEventExporter::~ChromeTraceEventExporter() noexcept { fprintf(f_.f_, "]"); }
+ChromeTraceEventExporter::~ChromeTraceEventExporter() noexcept { fprintf(f_.Get(), "]"); }
 
 void ChromeTraceEventExporter::operator()(const int tid, const std::int64_t losts, const std::vector<Event> &events) {
   for (const Event &e : events) {
@@ -42,15 +42,15 @@ void ChromeTraceEventExporter::operator()(const int tid, const std::int64_t lost
 
     if (e.p == Phase::begin) {
       const jerryct::string_view v{e.name.get()};
-      fprintf(f_.f_, R"(,{"name":"%.*s","pid":0,"tid":%d,"ph":"B","ts":%f})", static_cast<int>(v.size()), v.data(), tid,
-              d);
+      fprintf(f_.Get(), R"(,{"name":"%.*s","pid":0,"tid":%d,"ph":"B","ts":%f})", static_cast<int>(v.size()), v.data(),
+              tid, d);
     }
     if (e.p == Phase::end) {
-      fprintf(f_.f_, R"(,{"pid":0,"tid":%d,"ph":"E","ts":%f})", tid, d);
+      fprintf(f_.Get(), R"(,{"pid":0,"tid":%d,"ph":"E","ts":%f})", tid, d);
     }
   }
   const auto d = std::chrono::duration<double, std::micro>{std::chrono::steady_clock::now().time_since_epoch()};
-  fprintf(f_.f_, R"(,{"pid":0,"name":"total lost events","ph":"C","ts":%f,"args":{"value":%ld}})", d.count(), losts);
+  fprintf(f_.Get(), R"(,{"pid":0,"name":"total lost events","ph":"C","ts":%f,"args":{"value":%ld}})", d.count(), losts);
 }
 
 } // namespace trace
