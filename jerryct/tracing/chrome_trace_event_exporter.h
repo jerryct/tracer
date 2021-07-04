@@ -11,50 +11,32 @@
 namespace jerryct {
 namespace trace {
 
+struct File {
+  File() noexcept = default;
+  File(const std::string &filename);
+  File(const File &) = delete;
+  File(File &&other) noexcept;
+  File &operator=(const File &) = delete;
+  File &operator=(File &&other) noexcept;
+  ~File() noexcept;
+  bool IsValid() const;
+
+  std::FILE *f_{nullptr};
+};
+
 class ChromeTraceEventExporter {
 public:
-  ChromeTraceEventExporter(const std::string &filename) : f_{fopen(filename.c_str(), "w")} {
-    if (!IsValid()) {
-      throw;
-    }
-    fprintf(f_, "[{}");
-  }
+  ChromeTraceEventExporter(const std::string &filename);
   ChromeTraceEventExporter(const ChromeTraceEventExporter &) = delete;
-  ChromeTraceEventExporter(ChromeTraceEventExporter &&other) noexcept : f_{other.f_} { other.f_ = nullptr; }
+  ChromeTraceEventExporter(ChromeTraceEventExporter &&other) noexcept = default;
   ChromeTraceEventExporter &operator=(const ChromeTraceEventExporter &) = delete;
-  ChromeTraceEventExporter &operator=(ChromeTraceEventExporter &&other) noexcept {
-    if (f_ != other.f_) {
-      std::swap(f_, other.f_);
-    }
-    return *this;
-  }
-  ~ChromeTraceEventExporter() noexcept {
-    if (IsValid()) {
-      fprintf(f_, "]");
-      fclose(f_);
-    }
-  }
-  bool IsValid() const { return f_ != nullptr; }
+  ChromeTraceEventExporter &operator=(ChromeTraceEventExporter &&other) noexcept = default;
+  ~ChromeTraceEventExporter() noexcept;
 
-  void operator()(const int tid, const std::int64_t losts, const std::vector<Event> &events) {
-    for (const Event &e : events) {
-      const auto d = std::chrono::duration<double, std::micro>{e.ts.time_since_epoch()}.count();
-
-      if (e.p == Phase::begin) {
-        const jerryct::string_view v{e.name.get()};
-        fprintf(f_, R"(,{"name":"%.*s","pid":0,"tid":%d,"ph":"B","ts":%f})", static_cast<int>(v.size()), v.data(), tid,
-                d);
-      }
-      if (e.p == Phase::end) {
-        fprintf(f_, R"(,{"pid":0,"tid":%d,"ph":"E","ts":%f})", tid, d);
-      }
-    }
-    const auto d = std::chrono::duration<double, std::micro>{std::chrono::steady_clock::now().time_since_epoch()};
-    fprintf(f_, R"(,{"pid":0,"name":"total lost events","ph":"C","ts":%f,"args":{"value":%ld}})", d.count(), losts);
-  }
+  void operator()(const int tid, const std::int64_t losts, const std::vector<Event> &events);
 
 private:
-  std::FILE *f_{nullptr};
+  File f_;
 };
 
 } // namespace trace
