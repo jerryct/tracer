@@ -2,6 +2,7 @@
 
 #include "jerryct/tracing/prometheus_exporter.h"
 #include <arpa/inet.h>
+#include <array>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/uio.h>
@@ -70,7 +71,7 @@ void RequestHandler::operator()(PrometheusExporter &exporter) {
     response_.append(std::to_string(content_.size()));
     response_.append("\r\n\r\n");
 
-    std::array<iovec, 2> v;
+    std::array<::iovec, 2> v;
     v[0].iov_base = &response_[0];
     v[0].iov_len = response_.size();
     v[1].iov_base = &content_[0];
