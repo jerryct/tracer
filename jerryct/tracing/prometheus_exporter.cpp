@@ -118,7 +118,8 @@ void ConnectionHandler::Await(PrometheusExporter &exporter) {
       break;
     }
 
-    connections_.emplace_back(new_socket, RequestHandler{new_socket}, std::ref(exporter));
+    connections_.remove_if([](const Async &a) { return a.HasFinished(); });
+    connections_.emplace_front(new_socket, RequestHandler{new_socket}, std::ref(exporter));
   }
 }
 

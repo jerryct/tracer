@@ -5,6 +5,8 @@
 
 #include "jerryct/tracing/tracing.h"
 #include <chrono>
+#include <forward_list>
+#include <future>
 #include <string>
 #include <thread>
 #include <unordered_map>
@@ -58,6 +60,25 @@ private:
   std::string content_;
 };
 
+class Async {
+public:
+  template <typename Function, typename... Args>
+  explicit Async(int token, Function &&f, Args &&... args)
+      : p_{}, f_{p_.get_future()}, t_{token,
+                                      [this](auto &&f, auto &&... args) {
+                                        f(std::forward<Args>(args)...);
+                                        p_.set_value();
+                                      },
+                                      std::forward<Function>(f), std::forward<Args>(args)...} {}
+
+  bool HasFinished() const { return f_.wait_for(std::chrono::seconds{0}) == std::future_status::ready; }
+
+private:
+  std::promise<void> p_;
+  std::future<void> f_;
+  JoinThread t_;
+};
+
 class ConnectionHandler {
 public:
   ConnectionHandler(PrometheusExporter &exporter);
@@ -66,7 +87,7 @@ private:
   void Await(PrometheusExporter &exporter);
 
   FileDesc fd_;
-  std::vector<JoinThread> connections_;
+  std::forward_list<Async> connections_;
   JoinThread awaiter_;
 };
 
