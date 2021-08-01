@@ -194,6 +194,9 @@ void PrometheusExporter::Expose(std::string &content) {
     content.append("\"} ");
     to_chars(v.second.count, content);
     content.append("\n");
+
+    v.second.min = std::chrono::nanoseconds::max();
+    v.second.max = {};
   }
 
   content.append("# TYPE lost_events_total counter\n");

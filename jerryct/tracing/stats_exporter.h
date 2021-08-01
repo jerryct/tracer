@@ -50,6 +50,9 @@ public:
     for (auto &d : data_) {
       printf("%11lu ns %11lu ns %11lu ns %7zu %s\n", d.second.min.count(), d.second.max.count(),
              d.second.sum.count() / d.second.count, d.second.count, d.first.c_str());
+
+      d.second.min = std::chrono::nanoseconds::max();
+      d.second.max = {};
     }
 
     std::int64_t total{};
