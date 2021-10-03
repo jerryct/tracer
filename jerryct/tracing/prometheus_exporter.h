@@ -93,7 +93,7 @@ private:
 
 class PrometheusExporter {
 public:
-  void operator()(const int tid, const std::int64_t losts, const std::vector<Event> &events);
+  void operator()(const std::int32_t tid, const std::uint64_t losts, const std::vector<Event> &events);
   void Expose(std::string &content);
 
 private:
@@ -111,7 +111,7 @@ private:
 
   std::unordered_map<std::string, Metrics> data_;
   std::unordered_map<int, std::vector<Frame>> stacks_;
-  std::unordered_map<int, std::int64_t> losts_;
+  std::unordered_map<int, std::uint64_t> losts_;
   ConnectionHandler conn_{*this};
   std::mutex m_;
 };

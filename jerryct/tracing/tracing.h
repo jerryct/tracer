@@ -84,12 +84,12 @@ public:
     tail_.store(ta, std::memory_order_release);
   }
 
-  std::int64_t Losts() const { return losts_.load(std::memory_order_acquire); }
+  std::uint64_t Losts() const { return losts_.load(std::memory_order_acquire); }
 
 private:
   alignas(64) std::atomic<std::uint32_t> head_{};
   alignas(64) std::atomic<std::uint32_t> tail_{};
-  alignas(64) std::atomic<std::int64_t> losts_{};
+  alignas(64) std::atomic<std::uint64_t> losts_{};
   alignas(64) ManualLifetime d_[S];
 };
 

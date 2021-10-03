@@ -22,7 +22,7 @@ public:
   StatsExporter &operator=(StatsExporter &&other) noexcept = default;
   ~StatsExporter() noexcept { Print(); }
 
-  void operator()(const int tid, const std::int64_t losts, const std::vector<Event> &events) {
+  void operator()(const std::int32_t tid, const std::uint64_t losts, const std::vector<Event> &events) {
     auto &stack = stacks_[tid];
     for (const Event &e : events) {
       switch (e.phase) {
@@ -77,7 +77,7 @@ private:
 
   std::unordered_map<std::string, Metrics> data_;
   std::unordered_map<int, std::vector<Frame>> stacks_;
-  std::unordered_map<int, std::int64_t> losts_;
+  std::unordered_map<int, std::uint64_t> losts_;
 };
 
 } // namespace trace

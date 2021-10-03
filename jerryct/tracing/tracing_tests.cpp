@@ -26,14 +26,14 @@ TEST(TracerTest, SingleThread) {
   std::vector<std::tuple<std::string, Phase>> events{};
   std::vector<std::chrono::steady_clock::time_point> time_stamps{};
 
-  tracer.Export(
-      [&events, &time_stamps](const int /*unused*/, const std::int64_t losts, const std::vector<Event> &data) {
-        EXPECT_EQ(0, losts);
-        for (const Event &e : data) {
-          events.emplace_back(std::string{e.name.Get().data(), e.name.Get().size()}, e.phase);
-          time_stamps.emplace_back(e.time_stamp);
-        }
-      });
+  tracer.Export([&events, &time_stamps](const std::int32_t /*unused*/, const std::uint64_t losts,
+                                        const std::vector<Event> &data) {
+    EXPECT_EQ(0U, losts);
+    for (const Event &e : data) {
+      events.emplace_back(std::string{e.name.Get().data(), e.name.Get().size()}, e.phase);
+      time_stamps.emplace_back(e.time_stamp);
+    }
+  });
 
   ASSERT_EQ(8U, events.size());
 
@@ -60,8 +60,8 @@ TEST(TracerTest, MultiThreaded) {
   std::vector<std::tuple<std::string, Phase>> events{};
   std::vector<std::int32_t> tids{};
 
-  tracer.Export([&events, &tids](const int tid, const std::int64_t losts, const std::vector<Event> &data) {
-    EXPECT_EQ(0, losts);
+  tracer.Export([&events, &tids](const std::int32_t tid, const std::uint64_t losts, const std::vector<Event> &data) {
+    EXPECT_EQ(0U, losts);
     for (const Event &e : data) {
       events.emplace_back(std::string{e.name.Get().data(), e.name.Get().size()}, e.phase);
       tids.emplace_back(tid);
@@ -88,9 +88,9 @@ TEST(TracerTest, LockFreeQueue) {
 
   {
     std::vector<std::int32_t> o;
-    o.reserve(4);
-    r.ConsumeAll([&o](std::int32_t v) { o.push_back(v); });
-    ASSERT_EQ(0, o.size());
+    o.reserve(4U);
+    r.ConsumeAll([&o](const std::int32_t v) { o.push_back(v); });
+    ASSERT_EQ(0U, o.size());
   }
 
   r.Emplace(1);
@@ -100,13 +100,13 @@ TEST(TracerTest, LockFreeQueue) {
 
   {
     std::vector<std::int32_t> o;
-    o.reserve(4);
-    r.ConsumeAll([&o](std::int32_t v) { o.push_back(v); });
-    ASSERT_EQ(3, o.size());
-    EXPECT_EQ(1, r.Losts());
-    EXPECT_EQ(1, o[0]);
-    EXPECT_EQ(2, o[1]);
-    EXPECT_EQ(3, o[2]);
+    o.reserve(4U);
+    r.ConsumeAll([&o](const std::int32_t v) { o.push_back(v); });
+    ASSERT_EQ(3U, o.size());
+    EXPECT_EQ(1U, r.Losts());
+    EXPECT_EQ(1, o[0U]);
+    EXPECT_EQ(2, o[1U]);
+    EXPECT_EQ(3, o[2U]);
   }
 
   r.Emplace(5);
@@ -116,13 +116,13 @@ TEST(TracerTest, LockFreeQueue) {
 
   {
     std::vector<std::int32_t> o;
-    o.reserve(4);
-    r.ConsumeAll([&o](std::int32_t v) { o.push_back(v); });
-    ASSERT_EQ(3, o.size());
-    EXPECT_EQ(2, r.Losts());
-    EXPECT_EQ(5, o[0]);
-    EXPECT_EQ(6, o[1]);
-    EXPECT_EQ(7, o[2]);
+    o.reserve(4U);
+    r.ConsumeAll([&o](const std::int32_t v) { o.push_back(v); });
+    ASSERT_EQ(3U, o.size());
+    EXPECT_EQ(2U, r.Losts());
+    EXPECT_EQ(5, o[0U]);
+    EXPECT_EQ(6, o[1U]);
+    EXPECT_EQ(7, o[2U]);
   }
 }
 

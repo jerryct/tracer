@@ -36,7 +36,8 @@ ChromeTraceEventExporter::ChromeTraceEventExporter(const std::string &filename) 
 
 ChromeTraceEventExporter::~ChromeTraceEventExporter() noexcept { fprintf(f_.Get(), "]"); }
 
-void ChromeTraceEventExporter::operator()(const int tid, const std::int64_t losts, const std::vector<Event> &events) {
+void ChromeTraceEventExporter::operator()(const std::int32_t tid, const std::uint64_t losts,
+                                          const std::vector<Event> &events) {
   for (const Event &e : events) {
     const auto d = std::chrono::duration<double, std::micro>{e.time_stamp.time_since_epoch()}.count();
 
@@ -50,7 +51,7 @@ void ChromeTraceEventExporter::operator()(const int tid, const std::int64_t lost
     }
   }
   const auto d = std::chrono::duration<double, std::micro>{std::chrono::steady_clock::now().time_since_epoch()};
-  fprintf(f_.Get(), R"(,{"pid":0,"name":"total lost events","ph":"C","ts":%f,"args":{"value":%ld}})", d.count(), losts);
+  fprintf(f_.Get(), R"(,{"pid":0,"name":"total lost events","ph":"C","ts":%f,"args":{"value":%lu}})", d.count(), losts);
 }
 
 } // namespace trace

@@ -55,7 +55,7 @@ public:
   ChromeTraceEventExporter &operator=(ChromeTraceEventExporter &&other) noexcept = default;
   ~ChromeTraceEventExporter() noexcept;
 
-  void operator()(const int tid, const std::int64_t losts, const std::vector<Event> &events);
+  void operator()(const std::int32_t tid, const std::uint64_t losts, const std::vector<Event> &events);
 
   void Rotate() {
     fprintf(f_.Get(), "]");

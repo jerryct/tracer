@@ -126,7 +126,7 @@ RExporter::~RExporter() noexcept {
   close(fd_);
 }
 
-void RExporter::operator()(const int tid, const std::int64_t /*unused*/, const std::vector<Event> &events) {
+void RExporter::operator()(const std::int32_t tid, const std::uint64_t /*unused*/, const std::vector<Event> &events) {
   auto &stack = stacks_[tid];
   for (const Event &e : events) {
     switch (e.phase) {
