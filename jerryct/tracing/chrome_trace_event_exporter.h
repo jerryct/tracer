@@ -6,6 +6,7 @@
 #include "jerryct/tracing/tracing.h"
 #include <chrono>
 #include <cstdio>
+#include <fmt/format.h>
 #include <string>
 
 namespace jerryct {
@@ -51,6 +52,7 @@ public:
 
 private:
   FileRotate f_;
+  fmt::memory_buffer buf_;
 };
 
 } // namespace trace

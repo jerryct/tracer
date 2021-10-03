@@ -15,6 +15,14 @@ http_archive(
 )
 
 http_archive(
+    name = "fmtlib_fmt",
+    strip_prefix = "fmt-8.0.1",
+    urls = ["https://github.com/fmtlib/fmt/archive/refs/tags/8.0.1.zip"],
+    sha256 = "6747442c189064b857336007dd7fa3aaf58512aa1a0b2ba76bf1182eefb01025",
+    build_file = "@//:fmt.BUILD",
+)
+
+http_archive(
     name = "jerryct_string_view",
     strip_prefix = "string_view-1.0",
     urls = ["https://github.com/jerryct/string_view/archive/refs/tags/v1.0.zip"],

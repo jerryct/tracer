@@ -42,6 +42,7 @@ find_package(Threads REQUIRED)
 
 set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "")
 add_subdirectory(../benchmark _build/benchmark)
+add_subdirectory(../fmt _build/fmt)
 add_subdirectory(../googletest _build/googletest)
 set(JERRYCT_STRING_VIEW_ENABLE_TESTING OFF CACHE BOOL "")
 add_subdirectory(../string_view _build/string_view)
@@ -57,7 +58,7 @@ target_include_directories(tracing PUBLIC
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
   $<INSTALL_INTERFACE:.>
 )
-target_link_libraries(tracing PUBLIC jerryct::string_view Threads::Threads)
+target_link_libraries(tracing PUBLIC jerryct::string_view Threads::Threads fmt::fmt)
 target_compile_options(tracing PRIVATE "-Wall" "-Wextra" "-Wpedantic" "-Wformat=2" "-Wconversion")
 
 add_executable(example

@@ -18,6 +18,7 @@ cc_library(
     linkopts = ["-pthread"],
     deps = [
         "@jerryct_string_view//:string_view",
+        "@fmtlib_fmt//:fmt",
     ],
     visibility = ["//visibility:public"],
 )

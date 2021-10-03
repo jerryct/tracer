@@ -3,6 +3,7 @@
 #include "jerryct/tracing/chrome_trace_event_exporter.h"
 #include <chrono>
 #include <cstdio>
+#include <fmt/core.h>
 #include <string>
 
 namespace jerryct {
@@ -50,22 +51,55 @@ ChromeTraceEventExporter::ChromeTraceEventExporter(const std::string &filename) 
 
 ChromeTraceEventExporter::~ChromeTraceEventExporter() noexcept { fprintf(f_.Get(), "{}]"); }
 
+namespace {
+
+void FormatAsMicro(const std::chrono::steady_clock::time_point tp, fmt::memory_buffer &buf) {
+  const auto micro = std::chrono::duration_cast<std::chrono::microseconds>(tp.time_since_epoch());
+  buf.append(fmt::format_int{micro.count()});
+  buf.push_back('.');
+  const auto nano = (tp.time_since_epoch() - micro).count();
+  if (nano < 100) {
+    buf.push_back('0');
+  }
+  if (nano < 10) {
+    buf.push_back('0');
+  }
+  buf.append(fmt::format_int{nano});
+}
+
+} // namespace
+
 void ChromeTraceEventExporter::operator()(const std::int32_t tid, const std::uint64_t losts,
                                           const std::vector<Event> &events) {
   for (const Event &e : events) {
-    const auto d = std::chrono::duration<double, std::micro>{e.time_stamp.time_since_epoch()}.count();
-
-    if (e.phase == Phase::begin) {
-      const jerryct::string_view v{e.name.Get()};
-      fprintf(f_.Get(), R"({"name":"%.*s","pid":0,"tid":%d,"ph":"B","ts":%f},)", static_cast<int>(v.size()), v.data(),
-              tid, d);
-    }
-    if (e.phase == Phase::end) {
-      fprintf(f_.Get(), R"({"pid":0,"tid":%d,"ph":"E","ts":%f},)", tid, d);
+    switch (e.phase) {
+    case Phase::begin:
+      buf_.append(fmt::string_view{R"({"name":")"});
+      buf_.append(e.name.Get());
+      buf_.append(fmt::string_view{R"(","pid":0,"tid":)"});
+      buf_.append(fmt::format_int{tid});
+      buf_.append(fmt::string_view{R"(,"ph":"B","ts":)"});
+      FormatAsMicro(e.time_stamp, buf_);
+      buf_.append(fmt::string_view{R"(},)"});
+      break;
+    case Phase::end:
+      buf_.append(fmt::string_view{R"({"pid":0,"tid":)"});
+      buf_.append(fmt::format_int{tid});
+      buf_.append(fmt::string_view{R"(,"ph":"E","ts":)"});
+      FormatAsMicro(e.time_stamp, buf_);
+      buf_.append(fmt::string_view{R"(},)"});
+      break;
     }
   }
-  const auto d = std::chrono::duration<double, std::micro>{std::chrono::steady_clock::now().time_since_epoch()};
-  fprintf(f_.Get(), R"({"pid":0,"name":"total lost events","ph":"C","ts":%f,"args":{"value":%lu}},)", d.count(), losts);
+
+  buf_.append(fmt::string_view{R"({"pid":0,"name":"total lost events","ph":"C","ts":)"});
+  FormatAsMicro(std::chrono::steady_clock::now(), buf_);
+  buf_.append(fmt::string_view{R"(,"args":{"value":)"});
+  buf_.append(fmt::format_int{losts});
+  buf_.append(fmt::string_view{R"(}},)"});
+
+  std::fwrite(buf_.data(), 1, buf_.size(), f_.Get());
+  buf_.clear();
 }
 
 void ChromeTraceEventExporter::Rotate() {
