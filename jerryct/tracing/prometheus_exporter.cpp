@@ -127,14 +127,14 @@ void PrometheusExporter::operator()(const int tid, const std::int64_t losts, con
   std::lock_guard<std::mutex> lk{m_};
   auto &stack = stacks_[tid];
   for (const Event &e : events) {
-    switch (e.p) {
+    switch (e.phase) {
     case Phase::begin:
-      stack.push_back({{e.name.Get().data(), e.name.Get().size()}, e.ts});
+      stack.push_back({{e.name.Get().data(), e.name.Get().size()}, e.time_stamp});
       break;
     case Phase::end:
       if (!stack.empty()) {
         auto &data = data_[stack.back().name];
-        const auto d = e.ts - stack.back().ts;
+        const auto d = e.time_stamp - stack.back().ts;
         data.min = d < data.min ? d : data.min;
         data.max = d > data.max ? d : data.max;
         data.sum += d;

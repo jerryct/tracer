@@ -30,8 +30,8 @@ TEST(TracerTest, SingleThread) {
       [&events, &time_stamps](const int /*unused*/, const std::int64_t losts, const std::vector<Event> &data) {
         EXPECT_EQ(0, losts);
         for (const Event &e : data) {
-          events.emplace_back(std::string{e.name.Get().data(), e.name.Get().size()}, e.p);
-          time_stamps.emplace_back(e.ts);
+          events.emplace_back(std::string{e.name.Get().data(), e.name.Get().size()}, e.phase);
+          time_stamps.emplace_back(e.time_stamp);
         }
       });
 
@@ -63,7 +63,7 @@ TEST(TracerTest, MultiThreaded) {
   tracer.Export([&events, &tids](const int tid, const std::int64_t losts, const std::vector<Event> &data) {
     EXPECT_EQ(0, losts);
     for (const Event &e : data) {
-      events.emplace_back(std::string{e.name.Get().data(), e.name.Get().size()}, e.p);
+      events.emplace_back(std::string{e.name.Get().data(), e.name.Get().size()}, e.phase);
       tids.emplace_back(tid);
     }
   });

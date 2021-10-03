@@ -38,14 +38,14 @@ ChromeTraceEventExporter::~ChromeTraceEventExporter() noexcept { fprintf(f_.Get(
 
 void ChromeTraceEventExporter::operator()(const int tid, const std::int64_t losts, const std::vector<Event> &events) {
   for (const Event &e : events) {
-    const auto d = std::chrono::duration<double, std::micro>{e.ts.time_since_epoch()}.count();
+    const auto d = std::chrono::duration<double, std::micro>{e.time_stamp.time_since_epoch()}.count();
 
-    if (e.p == Phase::begin) {
+    if (e.phase == Phase::begin) {
       const jerryct::string_view v{e.name.Get()};
       fprintf(f_.Get(), R"(,{"name":"%.*s","pid":0,"tid":%d,"ph":"B","ts":%f})", static_cast<int>(v.size()), v.data(),
               tid, d);
     }
-    if (e.p == Phase::end) {
+    if (e.phase == Phase::end) {
       fprintf(f_.Get(), R"(,{"pid":0,"tid":%d,"ph":"E","ts":%f})", tid, d);
     }
   }
