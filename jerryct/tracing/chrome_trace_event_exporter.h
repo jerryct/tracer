@@ -26,19 +26,9 @@ struct File {
 
 class FileRotate {
 public:
-  explicit FileRotate(const std::string &filename) : f_{}, filename_{filename} { Rotate(); }
-
-  void Rotate() {
-    ::remove((filename_ + std::to_string(rotation_size - 1)).c_str());
-    for (int i{rotation_size - 1}; i > 1; --i) {
-      ::rename((filename_ + std::to_string(i - 1)).c_str(), (filename_ + std::to_string(i)).c_str());
-    }
-    ::rename(filename_.c_str(), (filename_ + std::to_string(1)).c_str());
-
-    f_ = {filename_};
-  }
-
-  std::FILE *Get() const { return f_.f_; }
+  explicit FileRotate(const std::string &filename);
+  void Rotate();
+  std::FILE *Get() const;
 
 private:
   File f_;
@@ -57,11 +47,7 @@ public:
 
   void operator()(const std::int32_t tid, const std::uint64_t losts, const std::vector<Event> &events);
 
-  void Rotate() {
-    fprintf(f_.Get(), "]");
-    f_.Rotate();
-    fprintf(f_.Get(), "[{}");
-  }
+  void Rotate();
 
 private:
   FileRotate f_;

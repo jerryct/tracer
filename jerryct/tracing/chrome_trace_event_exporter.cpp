@@ -30,6 +30,20 @@ File::~File() noexcept {
 }
 bool File::IsValid() const { return f_ != nullptr; }
 
+FileRotate::FileRotate(const std::string &filename) : f_{}, filename_{filename} { Rotate(); }
+
+void FileRotate::Rotate() {
+  ::remove((filename_ + std::to_string(rotation_size - 1)).c_str());
+  for (int i{rotation_size - 1}; i > 1; --i) {
+    ::rename((filename_ + std::to_string(i - 1)).c_str(), (filename_ + std::to_string(i)).c_str());
+  }
+  ::rename(filename_.c_str(), (filename_ + std::to_string(1)).c_str());
+
+  f_ = {filename_};
+}
+
+std::FILE *FileRotate::Get() const { return f_.f_; }
+
 ChromeTraceEventExporter::ChromeTraceEventExporter(const std::string &filename) : f_{filename} {
   fprintf(f_.Get(), "[{}");
 }
@@ -52,6 +66,12 @@ void ChromeTraceEventExporter::operator()(const std::int32_t tid, const std::uin
   }
   const auto d = std::chrono::duration<double, std::micro>{std::chrono::steady_clock::now().time_since_epoch()};
   fprintf(f_.Get(), R"(,{"pid":0,"name":"total lost events","ph":"C","ts":%f,"args":{"value":%lu}})", d.count(), losts);
+}
+
+void ChromeTraceEventExporter::Rotate() {
+  fprintf(f_.Get(), "]");
+  f_.Rotate();
+  fprintf(f_.Get(), "[{}");
 }
 
 } // namespace trace

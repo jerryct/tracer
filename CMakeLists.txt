@@ -50,6 +50,7 @@ add_library(tracing
   jerryct/tracing/chrome_trace_event_exporter.cpp
   jerryct/tracing/prometheus_exporter.cpp
   jerryct/tracing/r_exporter.cpp
+  jerryct/tracing/stats_exporter.cpp
   jerryct/tracing/tracing.cpp
 )
 target_include_directories(tracing PUBLIC
