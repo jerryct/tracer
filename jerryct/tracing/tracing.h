@@ -100,19 +100,6 @@ public:
     LockFreeQueue<Event, 4096> events;
   };
 
-  Events *PerThreadEvents() {
-    thread_local Events *const id{RegisterThread()};
-    return id;
-  }
-
-  Events *RegisterThread() {
-    std::lock_guard<std::mutex> guard{register_thread_};
-    per_thread_events_.emplace_front();
-    per_thread_events_.front().tid = thread_count_;
-    ++thread_count_;
-    return &per_thread_events_.front();
-  }
-
   template <typename F> void Export(F &&func) {
     std::vector<Event> v{};
     v.reserve(4096U);
@@ -127,6 +114,19 @@ public:
       it->events.ConsumeAll([&v](const Event &e) { v.push_back(e); });
       func(it->tid, it->events.Losts(), static_cast<const std::vector<Event> &>(v));
     }
+  }
+
+  Events *PerThreadEvents() {
+    thread_local Events *const id{RegisterThread()};
+    return id;
+  }
+
+  Events *RegisterThread() {
+    std::lock_guard<std::mutex> guard{register_thread_};
+    per_thread_events_.emplace_front();
+    per_thread_events_.front().tid = thread_count_;
+    ++thread_count_;
+    return &per_thread_events_.front();
   }
 
 private:
