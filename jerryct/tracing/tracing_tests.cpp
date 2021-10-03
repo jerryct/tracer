@@ -10,7 +10,7 @@ namespace jerryct {
 namespace trace {
 namespace {
 
-TEST(TracerTest, DurationEvent) {
+TEST(TracerTest, SingleThread) {
   TracerImpl tracer{};
 
   std::thread t{[&tracer]() {
@@ -30,7 +30,7 @@ TEST(TracerTest, DurationEvent) {
       [&events, &time_stamps](const int /*unused*/, const std::int64_t losts, const std::vector<Event> &data) {
         EXPECT_EQ(0, losts);
         for (const Event &e : data) {
-          events.emplace_back(std::string{e.name.get().data(), e.name.get().size()}, e.p);
+          events.emplace_back(std::string{e.name.Get().data(), e.name.Get().size()}, e.p);
           time_stamps.emplace_back(e.ts);
         }
       });
@@ -49,7 +49,7 @@ TEST(TracerTest, DurationEvent) {
   EXPECT_TRUE(std::is_sorted(time_stamps.cbegin(), time_stamps.cend()));
 }
 
-TEST(TracerTest, Threaded) {
+TEST(TracerTest, MultiThreaded) {
   TracerImpl tracer{};
 
   std::thread t1{[&tracer]() { Span s1{tracer, "main"}; }};
@@ -58,12 +58,12 @@ TEST(TracerTest, Threaded) {
   t2.join();
 
   std::vector<std::tuple<std::string, Phase>> events{};
-  std::vector<int> tids{};
+  std::vector<std::int32_t> tids{};
 
   tracer.Export([&events, &tids](const int tid, const std::int64_t losts, const std::vector<Event> &data) {
     EXPECT_EQ(0, losts);
     for (const Event &e : data) {
-      events.emplace_back(std::string{e.name.get().data(), e.name.get().size()}, e.p);
+      events.emplace_back(std::string{e.name.Get().data(), e.name.Get().size()}, e.p);
       tids.emplace_back(tid);
     }
   });
@@ -84,42 +84,42 @@ TEST(TracerTest, Threaded) {
 
 TEST(TracerTest, LockFreeQueue) {
 
-  LockFreeQueue<int, 4> r{};
+  LockFreeQueue<std::int32_t, 4> r{};
 
   {
-    std::vector<int> o;
+    std::vector<std::int32_t> o;
     o.reserve(4);
-    r.consume_all([&o](int v) { o.push_back(v); });
+    r.ConsumeAll([&o](std::int32_t v) { o.push_back(v); });
     ASSERT_EQ(0, o.size());
   }
 
-  r.emplace(1);
-  r.emplace(2);
-  r.emplace(3);
-  r.emplace(4);
+  r.Emplace(1);
+  r.Emplace(2);
+  r.Emplace(3);
+  r.Emplace(4);
 
   {
-    std::vector<int> o;
+    std::vector<std::int32_t> o;
     o.reserve(4);
-    r.consume_all([&o](int v) { o.push_back(v); });
+    r.ConsumeAll([&o](std::int32_t v) { o.push_back(v); });
     ASSERT_EQ(3, o.size());
-    EXPECT_EQ(1, r.losts());
+    EXPECT_EQ(1, r.Losts());
     EXPECT_EQ(1, o[0]);
     EXPECT_EQ(2, o[1]);
     EXPECT_EQ(3, o[2]);
   }
 
-  r.emplace(5);
-  r.emplace(6);
-  r.emplace(7);
-  r.emplace(8);
+  r.Emplace(5);
+  r.Emplace(6);
+  r.Emplace(7);
+  r.Emplace(8);
 
   {
-    std::vector<int> o;
+    std::vector<std::int32_t> o;
     o.reserve(4);
-    r.consume_all([&o](int v) { o.push_back(v); });
+    r.ConsumeAll([&o](std::int32_t v) { o.push_back(v); });
     ASSERT_EQ(3, o.size());
-    EXPECT_EQ(2, r.losts());
+    EXPECT_EQ(2, r.Losts());
     EXPECT_EQ(5, o[0]);
     EXPECT_EQ(6, o[1]);
     EXPECT_EQ(7, o[2]);
@@ -145,10 +145,10 @@ TEST(TracerTest, ASDF) {
 
   LockFreeQueue<Foo, 4> r{};
 
-  r.emplace();
-  r.emplace();
-  r.emplace();
-  r.emplace();
+  r.Emplace();
+  r.Emplace();
+  r.Emplace();
+  r.Emplace();
 }
 
 } // namespace

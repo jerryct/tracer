@@ -14,7 +14,7 @@ namespace trace {
 
 class RExporter {
 public:
-  RExporter(const std::string &filename);
+  explicit RExporter(const std::string &filename);
   RExporter(const RExporter &) = delete;
   RExporter(RExporter &&other) noexcept;
   RExporter &operator=(const RExporter &) = delete;

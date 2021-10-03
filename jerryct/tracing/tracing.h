@@ -6,6 +6,8 @@
 #include "jerryct/string_view.h"
 #include <atomic>
 #include <chrono>
+#include <cstddef>
+#include <cstdint>
 #include <cstring>
 #include <forward_list>
 #include <mutex>
@@ -15,11 +17,13 @@
 namespace jerryct {
 namespace trace {
 
-enum class Phase { begin, end };
+enum class Phase : std::int32_t { begin, end };
 
-struct fixed_string {
-  fixed_string() noexcept : s_{0} {}
-  fixed_string(jerryct::string_view v) noexcept {
+class FixedString {
+public:
+  FixedString() noexcept : s_{0} {}
+
+  FixedString(const jerryct::string_view v) noexcept {
     if (v.empty()) {
       s_ = 0;
       return;
@@ -28,19 +32,22 @@ struct fixed_string {
     std::memmove(&d_[0], v.data(), s_);
   }
 
-  jerryct::string_view get() const { return {&d_[0], s_}; }
+  jerryct::string_view Get() const { return {&d_[0], s_}; }
 
+private:
   char d_[64];
-  size_t s_;
+  std::size_t s_;
 };
 
 struct Event {
   Phase p;
   std::chrono::steady_clock::time_point ts;
-  fixed_string name;
+  FixedString name;
 };
 
-template <typename T, std::uint32_t S> struct LockFreeQueue {
+template <typename T, std::uint32_t S> class LockFreeQueue {
+  static_assert(std::is_trivially_destructible<T>::value, "");
+
   struct ManualLifetime {
     ManualLifetime() noexcept {}
     ~ManualLifetime() noexcept {}
@@ -49,20 +56,15 @@ template <typename T, std::uint32_t S> struct LockFreeQueue {
     };
   };
 
-  alignas(64) std::atomic<std::uint32_t> head_;
-  alignas(64) std::atomic<std::uint32_t> tail_;
-  alignas(64) std::atomic<std::int64_t> losts_;
-  alignas(64) ManualLifetime d_[S];
-  static_assert(std::is_trivially_destructible<T>::value, "");
+public:
+  template <typename... U> void Emplace(U &&... us) {
+    const std::uint32_t ta{tail_.load(std::memory_order_acquire)};
+    const std::uint32_t he{head_.load(std::memory_order_relaxed)};
 
-  template <typename... U> void emplace(U &&... us) {
-    const std::uint32_t ta = tail_.load(std::memory_order_acquire);
-    std::uint32_t he = head_.load(std::memory_order_relaxed);
-
-    const std::uint32_t the_next = (he + 1U) % S;
+    const std::uint32_t the_next{(he + 1U) % S};
 
     if (the_next == ta) {
-      losts_.fetch_add(1, std::memory_order_release);
+      losts_.fetch_add(1U, std::memory_order_release);
       return;
     }
 
@@ -70,9 +72,9 @@ template <typename T, std::uint32_t S> struct LockFreeQueue {
     head_.store(the_next, std::memory_order_release);
   }
 
-  template <typename F> void consume_all(F &&func) {
-    const std::uint32_t he = head_.load(std::memory_order_acquire);
-    std::uint32_t ta = tail_.load(std::memory_order_relaxed);
+  template <typename F> void ConsumeAll(F &&func) {
+    const std::uint32_t he{head_.load(std::memory_order_acquire)};
+    std::uint32_t ta{tail_.load(std::memory_order_relaxed)};
 
     for (; ta != he;) {
       func(std::move(d_[ta].value_));
@@ -82,19 +84,21 @@ template <typename T, std::uint32_t S> struct LockFreeQueue {
     tail_.store(ta, std::memory_order_release);
   }
 
-  std::int64_t losts() const { return losts_.load(std::memory_order_acquire); }
+  std::int64_t Losts() const { return losts_.load(std::memory_order_acquire); }
+
+private:
+  alignas(64) std::atomic<std::uint32_t> head_{};
+  alignas(64) std::atomic<std::uint32_t> tail_{};
+  alignas(64) std::atomic<std::int64_t> losts_{};
+  alignas(64) ManualLifetime d_[S];
 };
 
-// a thread must not outlive a tracer
-// https://opentelemetry.io/docs/concepts/data-sources/
-struct TracerImpl {
-
+class TracerImpl {
+public:
   struct Events {
-    int tid;
+    std::int32_t tid;
     LockFreeQueue<Event, 4096> events;
   };
-
-  std::mutex register_thread_;
 
   Events *PerThreadEvents() {
     thread_local Events *const id{RegisterThread()};
@@ -109,12 +113,9 @@ struct TracerImpl {
     return &per_thread_events_.front();
   }
 
-  int thread_count_{0};
-  std::forward_list<Events> per_thread_events_;
-
   template <typename F> void Export(F &&func) {
-    std::vector<Event> v;
-    v.reserve(4096);
+    std::vector<Event> v{};
+    v.reserve(4096U);
 
     std::forward_list<Events>::iterator it;
     {
@@ -123,18 +124,23 @@ struct TracerImpl {
     }
     for (; it != per_thread_events_.end(); ++it) {
       v.clear();
-      it->events.consume_all([&v](Event &&e) { v.push_back(std::move(e)); });
-      func(it->tid, it->events.losts(), [&v]() -> const std::vector<Event> & { return v; }());
+      it->events.ConsumeAll([&v](const Event &e) { v.push_back(e); });
+      func(it->tid, it->events.Losts(), static_cast<const std::vector<Event> &>(v));
     }
   }
+
+private:
+  std::mutex register_thread_;
+  std::int32_t thread_count_{0};
+  std::forward_list<Events> per_thread_events_;
 };
 
 inline TracerImpl &Tracer() {
-  static TracerImpl *t = new TracerImpl;
+  static TracerImpl *const t = new TracerImpl;
   return *t;
 }
 
-class Span {
+class Span final {
 public:
   Span(TracerImpl &t, const jerryct::string_view name);
   Span(const Span &) = delete;

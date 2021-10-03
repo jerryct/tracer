@@ -27,7 +27,7 @@ public:
     for (const Event &e : events) {
       switch (e.p) {
       case Phase::begin:
-        stack.push_back({{e.name.get().data(), e.name.get().size()}, e.ts});
+        stack.push_back({{e.name.Get().data(), e.name.Get().size()}, e.ts});
         break;
       case Phase::end:
         if (!stack.empty()) {

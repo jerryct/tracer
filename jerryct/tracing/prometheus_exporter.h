@@ -49,7 +49,7 @@ class PrometheusExporter;
 
 class RequestHandler {
 public:
-  RequestHandler(FileDesc fd);
+  explicit RequestHandler(FileDesc fd);
 
   void operator()(PrometheusExporter &exporter);
 
@@ -81,7 +81,7 @@ private:
 
 class ConnectionHandler {
 public:
-  ConnectionHandler(PrometheusExporter &exporter);
+  explicit ConnectionHandler(PrometheusExporter &exporter);
 
 private:
   void Await(PrometheusExporter &exporter);

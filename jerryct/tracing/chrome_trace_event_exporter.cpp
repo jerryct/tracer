@@ -41,7 +41,7 @@ void ChromeTraceEventExporter::operator()(const int tid, const std::int64_t lost
     const auto d = std::chrono::duration<double, std::micro>{e.ts.time_since_epoch()}.count();
 
     if (e.p == Phase::begin) {
-      const jerryct::string_view v{e.name.get()};
+      const jerryct::string_view v{e.name.Get()};
       fprintf(f_.Get(), R"(,{"name":"%.*s","pid":0,"tid":%d,"ph":"B","ts":%f})", static_cast<int>(v.size()), v.data(),
               tid, d);
     }

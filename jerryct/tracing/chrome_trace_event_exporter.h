@@ -26,7 +26,7 @@ struct File {
 
 class FileRotate {
 public:
-  FileRotate(const std::string &filename) : f_{}, filename_{filename} { Rotate(); }
+  explicit FileRotate(const std::string &filename) : f_{}, filename_{filename} { Rotate(); }
 
   void Rotate() {
     ::remove((filename_ + std::to_string(rotation_size - 1)).c_str());
@@ -48,7 +48,7 @@ private:
 
 class ChromeTraceEventExporter {
 public:
-  ChromeTraceEventExporter(const std::string &filename);
+  explicit ChromeTraceEventExporter(const std::string &filename);
   ChromeTraceEventExporter(const ChromeTraceEventExporter &) = delete;
   ChromeTraceEventExporter(ChromeTraceEventExporter &&other) noexcept = default;
   ChromeTraceEventExporter &operator=(const ChromeTraceEventExporter &) = delete;

@@ -19,7 +19,7 @@ void Span(benchmark::State &state) {
   auto name = std::string(64, 'c');
   for (auto _ : state) {
     jerryct::trace::Span s{jerryct::trace::Tracer(), name};
-    jerryct::trace::Tracer().PerThreadEvents()->events.consume_all([](auto /*unused*/) {});
+    jerryct::trace::Tracer().PerThreadEvents()->events.ConsumeAll([](auto /*unused*/) {});
     benchmark::DoNotOptimize(jerryct::trace::Tracer().PerThreadEvents());
     benchmark::ClobberMemory();
   }
@@ -54,10 +54,10 @@ void ExportPrometheus(benchmark::State &state) {
 void LockFreeQueue(benchmark::State &state) {
   jerryct::trace::LockFreeQueue<int, 4> r{};
   for (auto _ : state) {
-    r.emplace(1);
-    r.emplace(2);
-    r.emplace(3);
-    r.consume_all([](int /*unused*/) {});
+    r.Emplace(1);
+    r.Emplace(2);
+    r.Emplace(3);
+    r.ConsumeAll([](int /*unused*/) {});
     benchmark::ClobberMemory();
   }
 }
