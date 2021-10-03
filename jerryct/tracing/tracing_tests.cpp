@@ -126,31 +126,6 @@ TEST(TracerTest, LockFreeQueue) {
   }
 }
 
-struct Foo {
-  Foo() { printf("ctor\n"); }
-  Foo(const Foo & /*unused*/) { printf("copy\n"); }
-  Foo(Foo && /*unused*/) { printf("move\n"); }
-  Foo &operator=(const Foo & /*unused*/) {
-    printf("copyassign\n");
-    return *this;
-  }
-  Foo &operator=(Foo && /*unused*/) {
-    printf("moveassign\n");
-    return *this;
-  }
-  //~Foo() { printf("dtor\n"); }
-};
-
-TEST(TracerTest, ASDF) {
-
-  LockFreeQueue<Foo, 4> r{};
-
-  r.Emplace();
-  r.Emplace();
-  r.Emplace();
-  r.Emplace();
-}
-
 } // namespace
 } // namespace trace
 } // namespace jerryct
