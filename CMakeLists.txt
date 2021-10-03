@@ -74,7 +74,10 @@ target_compile_options(unit_tests PRIVATE "-Wall" "-Wextra" "-Wpedantic" "-Wform
 add_test(unit_tests unit_tests)
 
 add_executable(benchmarks
+  jerryct/tracing/chrome_trace_event_exporter_benchmark.cpp
+  jerryct/tracing/prometheus_exporter_benchmark.cpp
+  jerryct/tracing/stats_exporter_benchmark.cpp
   jerryct/tracing/tracing_benchmark.cpp
 )
-target_link_libraries(benchmarks PRIVATE tracing benchmark::benchmark)
+target_link_libraries(benchmarks PRIVATE tracing benchmark::benchmark_main)
 target_compile_options(benchmarks PRIVATE "-Wall" "-Wextra" "-Wpedantic" "-Wformat=2" "-Wconversion")

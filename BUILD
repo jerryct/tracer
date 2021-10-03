@@ -36,6 +36,9 @@ cc_test(
 cc_binary(
     name = "benchmark",
     srcs = [
+        "jerryct/tracing/chrome_trace_event_exporter_benchmark.cpp",
+        "jerryct/tracing/prometheus_exporter_benchmark.cpp",
+        "jerryct/tracing/stats_exporter_benchmark.cpp",
         "jerryct/tracing/tracing_benchmark.cpp",
     ],
     deps = [
