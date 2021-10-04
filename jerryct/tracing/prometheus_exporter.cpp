@@ -3,6 +3,7 @@
 #include "jerryct/tracing/prometheus_exporter.h"
 #include <arpa/inet.h>
 #include <array>
+#include <fmt/core.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/uio.h>
@@ -67,9 +68,10 @@ void RequestHandler::operator()(PrometheusExporter &exporter) {
 
     exporter.Expose(content_);
 
-    response_.append("HTTP/1.1 200 OK\r\nContent-Type: text/plain; version=0.0.4\r\nContent-Length: ");
-    response_.append(std::to_string(content_.size()));
-    response_.append("\r\n\r\n");
+    response_.append(
+        fmt::string_view{"HTTP/1.1 200 OK\r\nContent-Type: text/plain; version=0.0.4\r\nContent-Length: "});
+    response_.append(fmt::format_int{content_.size()});
+    response_.append(fmt::string_view{"\r\n\r\n"});
 
     std::array<::iovec, 2> v;
     v[0].iov_base = &response_[0];
@@ -148,65 +150,39 @@ void PrometheusExporter::operator()(const std::int32_t tid, const std::uint64_t 
   losts_[tid] = losts;
 }
 
-namespace {
-
-void to_chars(const std::int64_t v, std::string &s) {
-  static_assert(20 == std::numeric_limits<std::uint64_t>::digits10 + 1, "");
-  constexpr int buffer_length = 21; // 20 digits + sign
-
-  uint64_t value = static_cast<std::uint64_t>(v);
-  if (v < 0) {
-    value = ~value + 1U;
-  }
-  char temp[buffer_length];
-  char *p = &temp[buffer_length];
-  do {
-    --p;
-    *p = static_cast<char>(static_cast<char>(value % 10U) + '0');
-    value /= 10U;
-  } while (value > 0);
-  if (v < 0) {
-    *--p = '-';
-  }
-
-  s.append(p, static_cast<std::size_t>(&temp[buffer_length] - p));
-}
-
-} // namespace
-
-void PrometheusExporter::Expose(std::string &content) {
+void PrometheusExporter::Expose(fmt::memory_buffer &content) {
   std::lock_guard<std::mutex> lk{m_};
-  content.append("# TYPE duration_nanoseconds summary\n");
+  content.append(fmt::string_view{"# TYPE duration_nanoseconds summary\n"});
   for (auto &v : data_) {
-    content.append("duration_nanoseconds{name=\"");
+    content.append(fmt::string_view{"duration_nanoseconds{name=\""});
     content.append(v.first);
-    content.append("\",quantile=\"0\"} ");
-    to_chars(v.second.min.count(), content);
-    content.append("\nduration_nanoseconds{name=\"");
+    content.append(fmt::string_view{"\",quantile=\"0\"} "});
+    content.append(fmt::format_int{v.second.min.count()});
+    content.append(fmt::string_view{"\nduration_nanoseconds{name=\""});
     content.append(v.first);
-    content.append("\",quantile=\"1\"} ");
-    to_chars(v.second.max.count(), content);
-    content.append("\nduration_nanoseconds_sum{name=\"");
+    content.append(fmt::string_view{"\",quantile=\"1\"} "});
+    content.append(fmt::format_int{v.second.max.count()});
+    content.append(fmt::string_view{"\nduration_nanoseconds_sum{name=\""});
     content.append(v.first);
-    content.append("\"} ");
-    to_chars(v.second.sum.count(), content);
-    content.append("\nduration_nanoseconds_count{name=\"");
+    content.append(fmt::string_view{"\"} "});
+    content.append(fmt::format_int{v.second.sum.count()});
+    content.append(fmt::string_view{"\nduration_nanoseconds_count{name=\""});
     content.append(v.first);
-    content.append("\"} ");
-    to_chars(v.second.count, content);
-    content.append("\n");
+    content.append(fmt::string_view{"\"} "});
+    content.append(fmt::format_int{v.second.count});
+    content.push_back('\n');
 
     v.second.min = std::chrono::nanoseconds::max();
     v.second.max = {};
   }
 
-  content.append("# TYPE lost_events_total counter\n");
+  content.append(fmt::string_view{"# TYPE lost_events_total counter\n"});
   for (const auto &v : losts_) {
-    content.append("lost_events_total{tid=\"");
-    to_chars(v.first, content);
-    content.append("\"} ");
-    to_chars(v.second, content);
-    content.append("\n");
+    content.append(fmt::string_view{"lost_events_total{tid=\""});
+    content.append(fmt::format_int{v.first});
+    content.append(fmt::string_view{"\"} "});
+    content.append(fmt::format_int{v.second});
+    content.push_back('\n');
   }
 }
 

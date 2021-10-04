@@ -8,7 +8,7 @@ namespace {
 
 void ExportPrometheus(benchmark::State &state) {
   jerryct::trace::PrometheusExporter prom{};
-  std::string content;
+  fmt::memory_buffer content;
   content.reserve(1024);
 
   auto name = std::string(64, 'c');

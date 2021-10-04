@@ -5,6 +5,7 @@
 
 #include "jerryct/tracing/tracing.h"
 #include <chrono>
+#include <fmt/format.h>
 #include <forward_list>
 #include <future>
 #include <string>
@@ -56,8 +57,8 @@ public:
 private:
   FileDesc fd_;
   std::vector<char> request_;
-  std::string response_;
-  std::string content_;
+  fmt::memory_buffer response_;
+  fmt::memory_buffer content_;
 };
 
 class Async {
@@ -94,7 +95,7 @@ private:
 class PrometheusExporter {
 public:
   void operator()(const std::int32_t tid, const std::uint64_t losts, const std::vector<Event> &events);
-  void Expose(std::string &content);
+  void Expose(fmt::memory_buffer &content);
 
 private:
   struct Metrics {
