@@ -92,11 +92,13 @@ void ChromeTraceEventExporter::operator()(const std::int32_t tid, const std::uin
     }
   }
 
-  buf_.append(fmt::string_view{R"({"pid":0,"name":"total lost events","ph":"C","ts":)"});
-  FormatAsMicro(std::chrono::steady_clock::now(), buf_);
-  buf_.append(fmt::string_view{R"(,"args":{"value":)"});
-  buf_.append(fmt::format_int{losts});
-  buf_.append(fmt::string_view{R"(}},)"});
+  if (!events.empty()) {
+    buf_.append(fmt::string_view{R"({"pid":0,"name":"total lost events","ph":"C","ts":)"});
+    FormatAsMicro(events.back().time_stamp, buf_);
+    buf_.append(fmt::string_view{R"(,"args":{"value":)"});
+    buf_.append(fmt::format_int{losts});
+    buf_.append(fmt::string_view{R"(}},)"});
+  }
 
   std::fwrite(buf_.data(), 1, buf_.size(), f_.Get());
   buf_.clear();
