@@ -68,6 +68,7 @@ target_link_libraries(example PRIVATE tracing)
 target_compile_options(example PRIVATE "-Wall" "-Wextra" "-Wpedantic" "-Wformat=2" "-Wconversion")
 
 add_executable(unit_tests
+  jerryct/tracing/chrome_trace_event_exporter_tests.cpp
   jerryct/tracing/tracing_tests.cpp
 )
 target_link_libraries(unit_tests PRIVATE tracing gtest_main)

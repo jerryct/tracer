@@ -26,6 +26,7 @@ cc_library(
 cc_test(
     name = "test",
     srcs = [
+        "jerryct/tracing/chrome_trace_event_exporter_tests.cpp",
         "jerryct/tracing/tracing_tests.cpp",
     ],
     deps = [
