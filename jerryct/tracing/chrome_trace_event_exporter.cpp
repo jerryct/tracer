@@ -9,7 +9,7 @@
 namespace jerryct {
 namespace trace {
 
-File::File(const std::string &filename) : f_{::fopen(filename.c_str(), "w")} {
+File::File(const std::string &filename) : f_{std::fopen(filename.c_str(), "w")} {
   if (!IsValid()) {
     throw;
   }
@@ -26,7 +26,7 @@ File &File::operator=(File &&other) noexcept {
 
 File::~File() noexcept {
   if (IsValid()) {
-    ::fclose(f_);
+    std::fclose(f_);
   }
 }
 bool File::IsValid() const { return f_ != nullptr; }
@@ -34,11 +34,11 @@ bool File::IsValid() const { return f_ != nullptr; }
 FileRotate::FileRotate(const std::string &filename) : f_{}, filename_{filename} { Rotate(); }
 
 void FileRotate::Rotate() {
-  ::remove((filename_ + std::to_string(rotation_size - 1)).c_str());
-  for (int i{rotation_size - 1}; i > 1; --i) {
-    ::rename((filename_ + std::to_string(i - 1)).c_str(), (filename_ + std::to_string(i)).c_str());
+  std::remove((filename_ + std::to_string(rotation_size - 1)).c_str());
+  for (std::int32_t i{rotation_size - 1}; i > 1; --i) {
+    std::rename((filename_ + std::to_string(i - 1)).c_str(), (filename_ + std::to_string(i)).c_str());
   }
-  ::rename(filename_.c_str(), (filename_ + std::to_string(1)).c_str());
+  std::rename(filename_.c_str(), (filename_ + std::to_string(1)).c_str());
 
   f_ = {filename_};
 }
@@ -46,10 +46,10 @@ void FileRotate::Rotate() {
 std::FILE *FileRotate::Get() const { return f_.f_; }
 
 ChromeTraceEventExporter::ChromeTraceEventExporter(const std::string &filename) : f_{filename} {
-  fprintf(f_.Get(), "[");
+  std::fprintf(f_.Get(), "[");
 }
 
-ChromeTraceEventExporter::~ChromeTraceEventExporter() noexcept { fprintf(f_.Get(), "{}]"); }
+ChromeTraceEventExporter::~ChromeTraceEventExporter() noexcept { std::fprintf(f_.Get(), "{}]"); }
 
 namespace {
 
@@ -105,9 +105,9 @@ void ChromeTraceEventExporter::operator()(const std::int32_t tid, const std::uin
 }
 
 void ChromeTraceEventExporter::Rotate() {
-  fprintf(f_.Get(), "{}]");
+  std::fprintf(f_.Get(), "{}]");
   f_.Rotate();
-  fprintf(f_.Get(), "[");
+  std::fprintf(f_.Get(), "[");
 }
 
 } // namespace trace

@@ -33,7 +33,7 @@ public:
 
 private:
   File f_;
-  int rotation_size = 5;
+  std::int32_t rotation_size = 5;
   std::string filename_;
 };
 
