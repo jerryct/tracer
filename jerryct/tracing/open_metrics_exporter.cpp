@@ -1,11 +1,17 @@
 // SPDX-License-Identifier: MIT
 
 #include "jerryct/tracing/open_metrics_exporter.h"
+#include "jerryct/tracing/tracing.h"
+#include <algorithm>
 #include <arpa/inet.h>
 #include <array>
+#include <errno.h>
+#include <exception>
 #include <fmt/core.h>
+#include <fmt/format.h>
+#include <poll.h>
+#include <sys/ioctl.h>
 #include <sys/socket.h>
-#include <sys/types.h>
 #include <sys/uio.h>
 #include <unistd.h>
 
@@ -33,66 +39,29 @@ FileDesc::~FileDesc() noexcept {
 
 bool FileDesc::IsValid() const { return fd_ != -1; }
 
-JoinThread::JoinThread(JoinThread &&other) noexcept : stop_token_{-1}, t_{} {
-  std::swap(stop_token_, other.stop_token_);
-  std::swap(t_, other.t_);
-}
+HttpServer::HttpServer()
+    : listener_{::socket(AF_INET, SOCK_STREAM, 0)}, fds{}, request_{}, response_{},
+      poll_failed_{Meter(), "http_poll_failed"}, revents_{Meter(), "http_revents_not_pollin"},
+      accept_failed_{Meter(), "http_accept_failed"}, read_failed_{Meter(), "http_read_failed"},
+      write_failed_{Meter(), "http_write_failed"}, connection_opened_{Meter(), "http_connection_opened"},
+      connection_closed_{Meter(), "http_connection_closed"}, client_closed_{Meter(),
+                                                                            "http_connection_closed_by_client"},
+      bytes_written_{Meter(), "http_bytes_written"}, server_resets_{Meter(), "http_server_resets"} {
+  request_.resize(32000U);
+  response_.reserve(1024U);
 
-JoinThread &JoinThread::operator=(JoinThread &&other) noexcept {
-  if (t_.joinable()) {
-    ::shutdown(stop_token_, SHUT_RDWR);
-    t_.join();
+  if (!listener_.IsValid()) {
+    throw std::runtime_error{"cannot create socket"};
   }
-  std::swap(stop_token_, other.stop_token_);
-  std::swap(t_, other.t_);
 
-  return *this;
-}
-
-JoinThread::~JoinThread() {
-  if (t_.joinable()) {
-    ::shutdown(stop_token_, SHUT_RDWR);
-    t_.join();
+  const int reuse{1};
+  if (::setsockopt(listener_.fd_, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0) {
+    throw std::runtime_error{"cannot set socket to reuse address"};
   }
-}
 
-RequestHandler::RequestHandler(FileDesc fd) : fd_{std::move(fd)} {
-  request_.resize(32000);
-  response_.reserve(1024);
-  content_.reserve(1024);
-}
-
-void RequestHandler::operator()(OpenMetricsExporter &exporter) {
-  while (true) {
-    if (::read(fd_.fd_, request_.data(), request_.size()) <= 0) {
-      break;
-    }
-
-    exporter.Expose(content_);
-
-    response_.append(
-        fmt::string_view{"HTTP/1.1 200 OK\r\nContent-Type: text/plain; version=0.0.4\r\nContent-Length: "});
-    response_.append(fmt::format_int{content_.size()});
-    response_.append(fmt::string_view{"\r\n\r\n"});
-
-    std::array<::iovec, 2> v;
-    v[0].iov_base = &response_[0];
-    v[0].iov_len = response_.size();
-    v[1].iov_base = &content_[0];
-    v[1].iov_len = content_.size();
-    if (::writev(fd_.fd_, v.data(), v.size()) < 0) {
-      break;
-    }
-
-    response_.clear();
-    content_.clear();
-  }
-}
-
-ConnectionHandler::ConnectionHandler(OpenMetricsExporter &exporter)
-    : fd_{::socket(AF_INET, SOCK_STREAM, 0)}, connections_{}, awaiter_{} {
-  if (!fd_.IsValid()) {
-    throw;
+  const int non_blocking{1};
+  if (::ioctl(listener_.fd_, FIONBIO, &non_blocking)) {
+    throw std::runtime_error{"cannot set socket to non blocking"};
   }
 
   sockaddr_in address{};
@@ -100,49 +69,153 @@ ConnectionHandler::ConnectionHandler(OpenMetricsExporter &exporter)
   address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
   address.sin_port = htons(9110);
 
-  const int reuse{1};
-  if (::setsockopt(fd_.fd_, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0) {
-    throw;
+  if (::bind(listener_.fd_, reinterpret_cast<sockaddr *>(&address), sizeof(address)) < 0) {
+    throw std::runtime_error{"cannot bind address"};
+  }
+  if (::listen(listener_.fd_, 32) < 0) {
+    throw std::runtime_error{"cannot listen for connections"};
   }
 
-  if (::bind(fd_.fd_, reinterpret_cast<sockaddr *>(&address), sizeof(address)) < 0) {
-    throw;
-  }
-  if (::listen(fd_.fd_, 2) < 0) {
-    throw;
-  }
-
-  awaiter_ = JoinThread{fd_.fd_, &ConnectionHandler::Await, this, std::ref(exporter)};
+  fds.push_back(pollfd{listener_.fd_, POLLIN, 0});
 }
 
-void ConnectionHandler::Await(OpenMetricsExporter &exporter) {
-  while (true) {
-    const int new_socket{::accept(fd_.fd_, nullptr, nullptr)};
-    if (new_socket < 0) {
+bool HttpServer::IsAlive() const { return !fds.empty(); }
+
+// https://www.ibm.com/docs/en/i/7.1?topic=designs-using-poll-instead-select
+void HttpServer::Step(fmt::memory_buffer &content_) {
+  bool end_server{false};
+
+  do {
+    bool compress_array{false};
+
+    const ssize_t rc0{::poll(fds.data(), fds.size(), 1)};
+    if (rc0 < 0) {
+      poll_failed_.Add();
+      end_server = true;
+      break;
+    }
+    if (rc0 == 0) {
       break;
     }
 
-    connections_.remove_if([](const Async &a) { return a.HasFinished(); });
-    connections_.emplace_front(new_socket, RequestHandler{new_socket}, std::ref(exporter));
+    const std::size_t current_size{fds.size()};
+    for (std::size_t i{0U}; i < current_size; ++i) {
+      if (fds[i].revents == 0) {
+        continue;
+      }
+
+      if (fds[i].revents != POLLIN) { //  If revents is not POLLIN, it's an unexpected result, end the server.
+        fmt::print("Error! revents = {}\n", fds[i].revents);
+        revents_.Add();
+        end_server = true;
+        break;
+      }
+
+      if (fds[i].fd == listener_.fd_) {
+        int new_sd;
+        do {
+          new_sd = ::accept(listener_.fd_, nullptr, nullptr);
+          if (new_sd < 0) {
+            if ((errno != EWOULDBLOCK) && (errno != EAGAIN)) {
+              accept_failed_.Add();
+              end_server = true;
+            }
+            break;
+          }
+
+          connection_opened_.Add();
+          fds.push_back(pollfd{new_sd, POLLIN, 0});
+        } while (new_sd != -1);
+      } else {
+        bool close_conn{false};
+
+        do {
+          const ssize_t rc1{::read(fds[i].fd, request_.data(), request_.size())};
+          if (rc1 < 0) {
+            if ((errno != EWOULDBLOCK) && (errno != EAGAIN)) {
+              read_failed_.Add();
+              close_conn = true;
+            }
+            break;
+          }
+          if (rc1 == 0) {
+            client_closed_.Add();
+            close_conn = true;
+            break;
+          }
+
+          response_.append(
+              fmt::string_view{"HTTP/1.1 200 OK\r\nContent-Type: text/plain; version=0.0.4\r\nContent-Length: "});
+          response_.append(fmt::format_int{content_.size()});
+          response_.append(fmt::string_view{"\r\n\r\n"});
+
+          std::array<::iovec, 2> v;
+          v[0].iov_base = &response_[0];
+          v[0].iov_len = response_.size();
+          v[1].iov_base = &content_[0];
+          v[1].iov_len = content_.size();
+
+          const ssize_t rc2{::writev(fds[i].fd, v.data(), v.size())};
+          if (rc2 < 0) {
+            write_failed_.Add();
+            close_conn = true;
+            break;
+          }
+          bytes_written_.Add(rc2);
+          response_.clear();
+        } while (false);
+
+        if (close_conn) {
+          connection_closed_.Add();
+          ::close(fds[i].fd);
+          fds[i].fd = -1;
+          compress_array = true;
+        }
+      }
+    }
+
+    if (compress_array) {
+      compress_array = false;
+      const auto it = std::remove_if(fds.begin(), fds.end(), [](const pollfd &fd) { return fd.fd == -1; });
+      fds.erase(it, fds.end());
+    }
+  } while (false);
+
+  if (end_server) {
+    server_resets_.Add();
+    for (std::size_t i{0U}; i < fds.size(); ++i) {
+      if (fds[i].fd == listener_.fd_) {
+        listener_ = {};
+      } else if (fds[i].fd >= 0) {
+        connection_closed_.Add();
+        ::close(fds[i].fd);
+      } else {
+      }
+    }
+    fds.clear();
   }
 }
 
 void OpenMetricsExporter::operator()(const std::unordered_map<string_view, std::uint64_t> &counters) {
-  std::lock_guard<std::mutex> lk{m_};
-  counters_ = counters;
+  content_.reserve(1024U);
+  content_.clear();
+
+  for (const auto &c : counters) {
+    content_.append(fmt::string_view{"# TYPE "});
+    content_.append(c.first);
+    content_.append(fmt::string_view{"_total counter\n"});
+    content_.append(c.first);
+    content_.append(fmt::string_view{"_total "});
+    content_.append(fmt::format_int{c.second});
+    content_.push_back('\n');
+  }
 }
 
-void OpenMetricsExporter::Expose(fmt::memory_buffer &content) {
-  std::lock_guard<std::mutex> lk{m_};
-  for (const auto &v : counters_) {
-    content.append(fmt::string_view{"# TYPE "});
-    content.append(v.first);
-    content.append(fmt::string_view{"_total counter\n"});
-    content.append(v.first);
-    content.append(fmt::string_view{"_total "});
-    content.append(fmt::format_int{v.second});
-    content.push_back('\n');
+void OpenMetricsExporter::Expose() {
+  if (!server_.IsAlive()) {
+    server_ = {};
   }
+  server_.Step(content_);
 }
 
 } // namespace trace

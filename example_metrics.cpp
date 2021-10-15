@@ -21,12 +21,7 @@ int main() {
 
   jerryct::trace::OpenMetricsExporter p{};
   jerryct::trace::Meter().Export(p);
-
-  fmt::memory_buffer content;
-  content.reserve(1024);
-  p.Expose(content);
-
-  fmt::print(fmt::string_view{content.data(), content.size()});
+  p.Expose();
 
   return 0;
 }

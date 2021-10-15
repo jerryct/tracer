@@ -8,16 +8,11 @@ namespace {
 
 void ExportOpenMetrics(benchmark::State &state) {
   jerryct::trace::OpenMetricsExporter exporter{};
-  fmt::memory_buffer content;
-  content.reserve(1024);
 
   jerryct::trace::Counter c{jerryct::trace::Meter(), std::string(64, 'c')};
   for (auto _ : state) {
     c.Add();
     jerryct::trace::Meter().Export(exporter);
-    content.clear();
-    exporter.Expose(content);
-    benchmark::DoNotOptimize(content);
     benchmark::ClobberMemory();
   }
 }
