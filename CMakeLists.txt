@@ -5,9 +5,12 @@ enable_testing()
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_EXTENSIONS Off)
-set(DEFAULT_COPTS "-fno-omit-frame-pointer" "-g") # "-fno-builtin-memcpy" "-U_FORTIFY_SOURCE"
+option(JERRYCT_TRACER_ENABLE_TESTING "Enable unit tests." ON)
+option(JERRYCT_TRACER_ENABLE_BENCHMARK "Enable benchmarks." ON)
 
+set(DEFAULT_COPTS "-fno-omit-frame-pointer" "-g") # "-fno-builtin-memcpy" "-U_FORTIFY_SOURCE"
 set(DEFAULT_LINKOPTS "")
+
 if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64" OR "${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "AMD64")
   list(APPEND DEFAULT_COPTS
     $<$<CONFIG:Debug>:-fsanitize=address,undefined,leak>
@@ -67,20 +70,24 @@ add_executable(example
 target_link_libraries(example PRIVATE tracing)
 target_compile_options(example PRIVATE "-Wall" "-Wextra" "-Wpedantic" "-Wformat=2" "-Wconversion")
 
-add_executable(unit_tests
-  jerryct/tracing/chrome_trace_event_exporter_tests.cpp
-  jerryct/tracing/tracing_tests.cpp
-)
-target_link_libraries(unit_tests PRIVATE tracing gtest_main)
-target_compile_options(unit_tests PRIVATE "-Wall" "-Wextra" "-Wpedantic" "-Wformat=2" "-Wconversion")
-add_test(unit_tests unit_tests)
+if (JERRYCT_TRACER_ENABLE_TESTING)
+  add_executable(unit_tests
+    jerryct/tracing/chrome_trace_event_exporter_tests.cpp
+    jerryct/tracing/tracing_tests.cpp
+  )
+  target_link_libraries(unit_tests PRIVATE tracing gtest_main)
+  target_compile_options(unit_tests PRIVATE "-Wall" "-Wextra" "-Wpedantic" "-Wformat=2" "-Wconversion")
+  add_test(unit_tests unit_tests)
+endif()
 
-add_executable(benchmarks
-  jerryct/tracing/chrome_trace_event_exporter_benchmark.cpp
-  jerryct/tracing/clock_benchmark.cpp
-  jerryct/tracing/prometheus_exporter_benchmark.cpp
-  jerryct/tracing/stats_exporter_benchmark.cpp
-  jerryct/tracing/tracing_benchmark.cpp
-)
-target_link_libraries(benchmarks PRIVATE tracing benchmark::benchmark_main)
-target_compile_options(benchmarks PRIVATE "-Wall" "-Wextra" "-Wpedantic" "-Wformat=2" "-Wconversion")
+if (JERRYCT_TRACER_ENABLE_BENCHMARK)
+  add_executable(benchmarks
+      jerryct/tracing/chrome_trace_event_exporter_benchmark.cpp
+      jerryct/tracing/clock_benchmark.cpp
+      jerryct/tracing/prometheus_exporter_benchmark.cpp
+      jerryct/tracing/stats_exporter_benchmark.cpp
+      jerryct/tracing/tracing_benchmark.cpp
+  )
+  target_link_libraries(benchmarks PRIVATE tracing benchmark::benchmark_main)
+  target_compile_options(benchmarks PRIVATE "-Wall" "-Wextra" "-Wpedantic" "-Wformat=2" "-Wconversion")
+endif()
