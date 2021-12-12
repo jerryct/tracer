@@ -17,9 +17,11 @@ FileDesc::FileDesc(int fd) : fd_{fd} {}
 FileDesc::FileDesc(FileDesc &&other) noexcept : fd_{other.fd_} { other.fd_ = -1; }
 
 FileDesc &FileDesc::operator=(FileDesc &&other) noexcept {
-  if (fd_ != other.fd_) {
-    std::swap(fd_, other.fd_);
+  if (IsValid()) {
+    ::close(fd_);
   }
+  fd_ = other.fd_;
+  other.fd_ = -1;
   return *this;
 }
 
