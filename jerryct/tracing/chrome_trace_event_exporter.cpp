@@ -9,28 +9,6 @@
 namespace jerryct {
 namespace trace {
 
-File::File(const std::string &filename) : f_{std::fopen(filename.c_str(), "w")} {
-  if (!IsValid()) {
-    throw;
-  }
-}
-
-File::File(File &&other) noexcept : f_{other.f_} { other.f_ = nullptr; }
-
-File &File::operator=(File &&other) noexcept {
-  if (f_ != other.f_) {
-    std::swap(f_, other.f_);
-  }
-  return *this;
-}
-
-File::~File() noexcept {
-  if (IsValid()) {
-    std::fclose(f_);
-  }
-}
-bool File::IsValid() const { return f_ != nullptr; }
-
 FileRotate::FileRotate(const std::string &filename) : f_{}, filename_{filename} { Rotate(); }
 
 void FileRotate::Rotate() {
@@ -40,10 +18,10 @@ void FileRotate::Rotate() {
   }
   std::rename(filename_.c_str(), (filename_ + std::to_string(1)).c_str());
 
-  f_ = {filename_};
+  f_ = {filename_, "w"};
 }
 
-std::FILE *FileRotate::Get() const { return f_.f_; }
+std::FILE *FileRotate::Get() const { return f_.get(); }
 
 ChromeTraceEventExporter::ChromeTraceEventExporter(const std::string &filename) : f_{filename} {
   std::fprintf(f_.Get(), "[");
