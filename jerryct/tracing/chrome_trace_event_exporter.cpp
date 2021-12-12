@@ -9,11 +9,11 @@
 namespace jerryct {
 namespace trace {
 
-FileRotate::FileRotate(const std::string &filename) : f_{}, filename_{filename} { Rotate(); }
+FileRotate::FileRotate(const std::string &filename) : f_{}, rotation_size_{5}, filename_{filename} { Rotate(); }
 
 void FileRotate::Rotate() {
-  std::remove((filename_ + std::to_string(rotation_size - 1)).c_str());
-  for (std::int32_t i{rotation_size - 1}; i > 1; --i) {
+  std::remove((filename_ + std::to_string(rotation_size_ - 1)).c_str());
+  for (std::int32_t i{rotation_size_ - 1}; i > 1; --i) {
     std::rename((filename_ + std::to_string(i - 1)).c_str(), (filename_ + std::to_string(i)).c_str());
   }
   std::rename(filename_.c_str(), (filename_ + std::to_string(1)).c_str());

@@ -22,7 +22,7 @@ public:
 
 private:
   fmt::buffered_file f_;
-  std::int32_t rotation_size = 5;
+  std::int32_t rotation_size_;
   std::string filename_;
 };
 
