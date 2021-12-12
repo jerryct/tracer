@@ -4,11 +4,12 @@
 #define JERRYCT_TRACING_CHROME_TRACE_EVENT_EXPORTER_H
 
 #include "jerryct/tracing/tracing.h"
-#include <chrono>
+#include <cstdint>
 #include <cstdio>
 #include <fmt/format.h>
 #include <fmt/os.h>
 #include <string>
+#include <vector>
 
 namespace jerryct {
 namespace trace {
