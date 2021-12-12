@@ -27,7 +27,11 @@ ChromeTraceEventExporter::ChromeTraceEventExporter(const std::string &filename) 
   std::fprintf(f_.Get(), "[");
 }
 
-ChromeTraceEventExporter::~ChromeTraceEventExporter() noexcept { std::fprintf(f_.Get(), "{}]"); }
+ChromeTraceEventExporter::~ChromeTraceEventExporter() noexcept {
+  if (f_.Get() != nullptr) {
+    std::fprintf(f_.Get(), "{}]");
+  }
+}
 
 namespace {
 
