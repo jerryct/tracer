@@ -30,9 +30,9 @@ class ChromeTraceEventExporter {
 public:
   explicit ChromeTraceEventExporter(const std::string &filename);
   ChromeTraceEventExporter(const ChromeTraceEventExporter &) = delete;
-  ChromeTraceEventExporter(ChromeTraceEventExporter &&other) = default;
   ChromeTraceEventExporter &operator=(const ChromeTraceEventExporter &) = delete;
-  ChromeTraceEventExporter &operator=(ChromeTraceEventExporter &&other) = default;
+  ChromeTraceEventExporter(ChromeTraceEventExporter &&other) = default;
+  ChromeTraceEventExporter &operator=(ChromeTraceEventExporter &&other);
   ~ChromeTraceEventExporter() noexcept;
 
   void operator()(const std::int32_t tid, const std::uint64_t losts, const std::vector<Event> &events);
