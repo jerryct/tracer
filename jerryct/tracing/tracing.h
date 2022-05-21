@@ -17,7 +17,7 @@
 namespace jerryct {
 namespace trace {
 
-enum class Phase : std::int32_t { begin, end };
+enum class Phase : std::int32_t { begin, end, counter };
 
 class FixedString {
 public:
@@ -151,6 +151,22 @@ public:
 
 private:
   TracerImpl::Events *t_;
+};
+
+class Meter final {
+public:
+  Meter(TracerImpl &t, const jerryct::string_view name) : t_{&t}, name_{name} {}
+  Meter(const Meter &) = delete;
+  Meter(Meter &&) = delete;
+  Meter &operator=(const Meter &) = delete;
+  Meter &operator=(Meter &&) = delete;
+  ~Meter() noexcept = default;
+
+  void Increment();
+
+private:
+  TracerImpl *t_;
+  FixedString name_;
 };
 
 } // namespace trace

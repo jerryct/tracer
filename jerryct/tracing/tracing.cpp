@@ -15,5 +15,10 @@ Span::~Span() noexcept {
   t_->events.Emplace(Phase::end, now, jerryct::string_view{""});
 }
 
+void Meter::Increment() {
+  const auto now = std::chrono::steady_clock::time_point{std::chrono::nanoseconds{1}};
+  t_->PerThreadEvents()->events.Emplace(Phase::counter, now, name_);
+}
+
 } // namespace trace
 } // namespace jerryct
