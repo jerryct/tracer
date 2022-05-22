@@ -10,14 +10,16 @@
 #include <cstdint>
 #include <cstring>
 #include <forward_list>
+#include <functional>
 #include <mutex>
 #include <type_traits>
+#include <unordered_map>
 #include <vector>
 
 namespace jerryct {
 namespace trace {
 
-enum class Phase : std::int32_t { begin, end, counter };
+enum class Phase : std::int32_t { begin, end };
 
 class FixedString {
 public:
@@ -39,11 +41,28 @@ private:
   std::size_t s_;
 };
 
+} // namespace trace
+} // namespace jerryct
+
+template <>
+struct std::hash<jerryct::trace::FixedString> //: public std::__hash_base<size_t, jerryct::trace::FixedString>
+{
+  size_t operator()(const jerryct::trace::FixedString &__s) const noexcept {
+    return std::_Hash_impl::hash(__s.Get().data(), __s.Get().size());
+  }
+};
+
+namespace jerryct {
+namespace trace {
+
 struct Event {
   Phase phase;
   std::chrono::steady_clock::time_point time_stamp;
   FixedString name;
 };
+
+constexpr bool operator==(const FixedString &lhs, const FixedString &rhs) noexcept { return lhs.Get() == rhs.Get(); }
+constexpr bool operator!=(const FixedString &lhs, const FixedString &rhs) noexcept { return !(lhs == rhs); }
 
 template <typename T, std::uint32_t S> class LockFreeQueue {
   static_assert(std::is_trivially_destructible<T>::value, "");
@@ -98,6 +117,7 @@ public:
   struct Events {
     std::int32_t tid;
     LockFreeQueue<Event, 4096> events;
+    std::unordered_map<FixedString, std::int64_t> counters;
   };
 
   template <typename F> void Export(F &&func) {
@@ -113,6 +133,20 @@ public:
       v.clear();
       it->events.ConsumeAll([&v](const Event &e) { v.push_back(e); });
       func(it->tid, it->events.Losts(), static_cast<const std::vector<Event> &>(v));
+    }
+  }
+  template <typename F> void Export2(F &&func) {
+    std::vector<Event> v{};
+    v.reserve(4096U);
+
+    std::forward_list<Events>::iterator it;
+    {
+      std::lock_guard<std::mutex> guard{register_thread_};
+      it = per_thread_events_.begin();
+    }
+    for (; it != per_thread_events_.end(); ++it) {
+      v.clear();
+      func(it->tid, it->counters);
     }
   }
 

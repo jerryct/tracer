@@ -43,16 +43,12 @@ void Metrics(benchmark::State &state) {
   jerryct::trace::Meter m{jerryct::trace::Tracer(), "foo"};
   for (auto _ : state) {
     m.Increment();
-    // jerryct::trace::Tracer().PerThreadEvents()->events.ConsumeAll([](auto /*unused*/) {});
   }
 
-  jerryct::trace::Tracer().Export(
-      [&c](const std::int32_t tid, const std::uint64_t losts, const std::vector<jerryct::trace::Event> &data) {
-        for (const jerryct::trace::Event &e : data) {
-          if (e.phase == jerryct::trace::Phase::counter) {
-            std::string s(e.name.Get().data(), e.name.Get().size());
-            c[s] += e.time_stamp.time_since_epoch().count();
-          }
+  jerryct::trace::Tracer().Export2(
+      [&c](const std::int32_t tid, std::unordered_map<jerryct::trace::FixedString, std::int64_t> &cc) {
+        for (const auto &e : cc) {
+          c[{e.first.Get().data(), e.first.Get().size()}] += e.second;
         }
       });
 

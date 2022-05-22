@@ -128,17 +128,24 @@ TEST(TracerTest, LockFreeQueue) {
 }
 
 TEST(Meter, Meter) {
-  Meter m{jerryct::trace::Tracer(), "foo"};
-  m.Increment();
+  TracerImpl tracer{};
+  Meter m{tracer, "foo"};
+
+  std::thread t1{[&m]() {
+    m.Increment();
+    m.Increment();
+  }};
+  std::thread t2{[&m]() {
+    m.Increment();
+    m.Increment();
+  }};
+  t1.join();
+  t2.join();
 
   std::unordered_map<std::string, std::int64_t> c{};
-  Tracer().Export([&c](const std::int32_t tid, const std::uint64_t losts, const std::vector<Event> &data) {
-    EXPECT_EQ(0U, losts);
-    for (const Event &e : data) {
-      if (e.phase == Phase::counter) {
-        std::string s(e.name.Get().data(), e.name.Get().size());
-        c[s] += e.time_stamp.time_since_epoch().count();
-      }
+  tracer.Export2([&c](const std::int32_t tid, std::unordered_map<jerryct::trace::FixedString, std::int64_t> &cc) {
+    for (const auto &e : cc) {
+      c[{e.first.Get().data(), e.first.Get().size()}] += e.second;
     }
   });
 
