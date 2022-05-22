@@ -117,7 +117,8 @@ public:
   struct Events {
     std::int32_t tid;
     LockFreeQueue<Event, 4096> events;
-    std::unordered_map<FixedString, std::int64_t> counters;
+    std::array<std::int64_t, 1024> counters;
+    std::uint64_t losts;
   };
 
   template <typename F> void Export(F &&func) {
@@ -146,7 +147,7 @@ public:
     }
     for (; it != per_thread_events_.end(); ++it) {
       v.clear();
-      func(it->tid, it->counters);
+      func(it->tid, names_, it->counters, s_id);
     }
   }
 
@@ -162,6 +163,9 @@ public:
     ++thread_count_;
     return &per_thread_events_.front();
   }
+
+  std::atomic<int> s_id{};
+  std::array<FixedString, 1024> names_;
 
 private:
   std::mutex register_thread_;
@@ -189,18 +193,12 @@ private:
 
 class Meter final {
 public:
-  Meter(TracerImpl &t, const jerryct::string_view name) : t_{&t}, name_{name} {}
-  Meter(const Meter &) = delete;
-  Meter(Meter &&) = delete;
-  Meter &operator=(const Meter &) = delete;
-  Meter &operator=(Meter &&) = delete;
-  ~Meter() noexcept = default;
-
+  Meter(TracerImpl &t, const jerryct::string_view name);
   void Increment();
 
 private:
   TracerImpl *t_;
-  FixedString name_;
+  int id_;
 };
 
 } // namespace trace

@@ -15,7 +15,22 @@ Span::~Span() noexcept {
   t_->events.Emplace(Phase::end, now, jerryct::string_view{""});
 }
 
-void Meter::Increment() { t_->PerThreadEvents()->counters[name_] += 1; }
+Meter::Meter(TracerImpl &t, const jerryct::string_view name) : t_{&t}, id_{t_->s_id.fetch_add(1)} {
+  if (id_ >= t_->names_.size()) {
+    t_->s_id.fetch_sub(1);
+    id_ = -1;
+    return;
+  }
+  t_->names_[id_] = name;
+}
+
+void Meter::Increment() {
+  if (id_ == -1) {
+    ++t_->PerThreadEvents()->losts;
+    return;
+  }
+  t_->PerThreadEvents()->counters[id_] += 1;
+}
 
 } // namespace trace
 } // namespace jerryct

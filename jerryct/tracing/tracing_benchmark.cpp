@@ -45,12 +45,11 @@ void Metrics(benchmark::State &state) {
     m.Increment();
   }
 
-  jerryct::trace::Tracer().Export2(
-      [&c](const std::int32_t tid, std::unordered_map<jerryct::trace::FixedString, std::int64_t> &cc) {
-        for (const auto &e : cc) {
-          c[{e.first.Get().data(), e.first.Get().size()}] += e.second;
-        }
-      });
+  jerryct::trace::Tracer().Export2([&c](const std::int32_t tid, std::array<jerryct::trace::FixedString, 1024> &names_,
+                                        std::array<std::int64_t, 1024> &names2_, int count) {
+    for (int i = 0; i < count; ++i)
+      c[{names_[i].Get().data(), names_[i].Get().size()}] += names2_[i];
+  });
 
   for (auto &cc : c)
     std::cout << cc.first << ": " << cc.second << "\n";

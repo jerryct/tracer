@@ -131,26 +131,30 @@ TEST(Meter, Meter) {
   TracerImpl tracer{};
   Meter m{tracer, "foo"};
 
-  std::thread t1{[&m]() {
-    m.Increment();
-    m.Increment();
+  std::thread t1{[m]() mutable {
+    for (int i{0}; i < 3000; ++i)
+      m.Increment();
   }};
   std::thread t2{[&m]() {
-    m.Increment();
-    m.Increment();
+    for (int i{0}; i < 5000; ++i)
+      m.Increment();
   }};
+  for (int i{0}; i < 2000; ++i)
+    m.Increment();
   t1.join();
   t2.join();
 
   std::unordered_map<std::string, std::int64_t> c{};
-  tracer.Export2([&c](const std::int32_t tid, std::unordered_map<jerryct::trace::FixedString, std::int64_t> &cc) {
-    for (const auto &e : cc) {
-      c[{e.first.Get().data(), e.first.Get().size()}] += e.second;
-    }
+  tracer.Export2([&c](const std::int32_t tid, std::array<FixedString, 1024> &names_,
+                      std::array<std::int64_t, 1024> &names2_, int count) {
+    for (int i = 0; i < count; ++i)
+      c[{names_[i].Get().data(), names_[i].Get().size()}] += names2_[i];
   });
 
   for (auto &cc : c)
     std::cout << cc.first << ": " << cc.second << "\n";
+
+  EXPECT_EQ(10000, c["foo"]);
 }
 
 } // namespace

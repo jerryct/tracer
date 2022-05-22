@@ -13,8 +13,8 @@ set(DEFAULT_LINKOPTS "")
 
 if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64" OR "${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "AMD64")
   list(APPEND DEFAULT_COPTS
-    $<$<CONFIG:Debug>:-fsanitize=address,undefined,leak>
-    #$<$<CONFIG:Debug>:-fsanitize=thread>
+    #$<$<CONFIG:Debug>:-fsanitize=address,undefined,leak>
+    $<$<CONFIG:Debug>:-fsanitize=thread>
     #$<$<AND:$<CXX_COMPILER_ID:Clang>,$<CONFIG:Debug>>:-fprofile-instr-generate>
     #$<$<AND:$<CXX_COMPILER_ID:Clang>,$<CONFIG:Debug>>:-fcoverage-mapping>
     $<$<CXX_COMPILER_ID:GNU>:-ftree-vectorize>
@@ -22,8 +22,8 @@ if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64" OR "${CMAKE_SYSTEM_PROCESSOR}" 
     -march=nehalem
   )
   list(APPEND DEFAULT_LINKOPTS
-    $<$<CONFIG:Debug>:-fsanitize=address,undefined,leak>
-    #$<$<CONFIG:Debug>:-fsanitize=thread>
+    #$<$<CONFIG:Debug>:-fsanitize=address,undefined,leak>
+    $<$<CONFIG:Debug>:-fsanitize=thread>
     #$<$<AND:$<CXX_COMPILER_ID:Clang>,$<CONFIG:Debug>>:-fprofile-instr-generate>
     #$<$<AND:$<CXX_COMPILER_ID:Clang>,$<CONFIG:Debug>>:-fcoverage-mapping>
   )
