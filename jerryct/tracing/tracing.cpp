@@ -22,6 +22,7 @@ Meter::Meter(MetricsImpl &t, const jerryct::string_view name) : t_{&t}, id_{t_->
     return;
   }
   t_->names_[id_] = name;
+  t_->is_commited_[id_].store(true);
 }
 
 void Meter::Increment() {

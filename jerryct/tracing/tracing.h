@@ -222,6 +222,12 @@ public:
     v.resize(1024);
 
     auto id = id_.load();
+    for (int i{id}; i > 0; --i) {
+      if (is_commited_[id - 1].load()) {
+        id = i;
+        break;
+      }
+    }
 
     storage_.Export([&v, id](const Events &e) {
       for (int i{}; i < id; ++i) {
@@ -242,6 +248,7 @@ private:
   };
 
   std::atomic<int> id_{};
+  std::array<std::atomic<bool>, 1024> is_commited_;
   std::array<FixedString, 1024> names_;
   ThreadStorage<Events> storage_;
 };
