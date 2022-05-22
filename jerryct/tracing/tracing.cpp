@@ -15,9 +15,9 @@ Span::~Span() noexcept {
   t_->events.Emplace(Phase::end, now, jerryct::string_view{""});
 }
 
-Meter::Meter(TracerImpl &t, const jerryct::string_view name) : t_{&t}, id_{t_->s_id.fetch_add(1)} {
+Meter::Meter(MetricsImpl &t, const jerryct::string_view name) : t_{&t}, id_{t_->id_.fetch_add(1)} {
   if (id_ >= t_->names_.size()) {
-    t_->s_id.fetch_sub(1);
+    t_->id_.fetch_sub(1);
     id_ = -1;
     return;
   }
@@ -26,10 +26,10 @@ Meter::Meter(TracerImpl &t, const jerryct::string_view name) : t_{&t}, id_{t_->s
 
 void Meter::Increment() {
   if (id_ == -1) {
-    ++t_->PerThreadEvents()->losts;
+    ++t_->storage_.PerThreadEvents()->losts;
     return;
   }
-  t_->PerThreadEvents()->counters[id_] += 1;
+  t_->storage_.PerThreadEvents()->counters[id_] += 1;
 }
 
 } // namespace trace

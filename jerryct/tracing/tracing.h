@@ -112,13 +112,43 @@ private:
   alignas(64) ManualLifetime d_[S];
 };
 
+template <typename T> class ThreadStorage {
+public:
+  template <typename F> void Export(F &&func) {
+    typename std::forward_list<T>::iterator it;
+    {
+      std::lock_guard<std::mutex> guard{register_thread_};
+      it = per_thread_events_.begin();
+    }
+    for (; it != per_thread_events_.end(); ++it) {
+      func(*it);
+    }
+  }
+
+  T *PerThreadEvents() {
+    thread_local T *const id{RegisterThread()};
+    return id;
+  }
+
+  T *RegisterThread() {
+    std::lock_guard<std::mutex> guard{register_thread_};
+    per_thread_events_.emplace_front();
+    per_thread_events_.front().tid = thread_count_;
+    ++thread_count_;
+    return &per_thread_events_.front();
+  }
+
+private:
+  std::mutex register_thread_;
+  std::int32_t thread_count_{0};
+  std::forward_list<T> per_thread_events_;
+};
+
 class TracerImpl {
 public:
   struct Events {
     std::int32_t tid;
     LockFreeQueue<Event, 4096> events;
-    std::array<std::int64_t, 1024> counters;
-    std::uint64_t losts;
   };
 
   template <typename F> void Export(F &&func) {
@@ -136,20 +166,6 @@ public:
       func(it->tid, it->events.Losts(), static_cast<const std::vector<Event> &>(v));
     }
   }
-  template <typename F> void Export2(F &&func) {
-    std::vector<Event> v{};
-    v.reserve(4096U);
-
-    std::forward_list<Events>::iterator it;
-    {
-      std::lock_guard<std::mutex> guard{register_thread_};
-      it = per_thread_events_.begin();
-    }
-    for (; it != per_thread_events_.end(); ++it) {
-      v.clear();
-      func(it->tid, names_, it->counters, s_id);
-    }
-  }
 
   Events *PerThreadEvents() {
     thread_local Events *const id{RegisterThread()};
@@ -163,9 +179,6 @@ public:
     ++thread_count_;
     return &per_thread_events_.front();
   }
-
-  std::atomic<int> s_id{};
-  std::array<FixedString, 1024> names_;
 
 private:
   std::mutex register_thread_;
@@ -191,13 +204,60 @@ private:
   TracerImpl::Events *t_;
 };
 
+template <typename T> struct span {
+  span(T *p, int s) : p_{p}, s_{s} {}
+  T *begin() const { return p_; }
+  T *end() const { return p_ + s_; }
+
+  T *p_;
+  int s_;
+};
+
+class Meter;
+
+class MetricsImpl {
+public:
+  template <typename F> void Export(F &&func) {
+    std::vector<std::int64_t> v{};
+    v.resize(1024);
+
+    auto id = id_.load();
+
+    storage_.Export([&v, id](const Events &e) {
+      for (int i{}; i < id; ++i) {
+        v[i] += e.counters[i];
+      }
+    });
+
+    func(span<const FixedString>{names_.data(), id}, static_cast<const std::vector<std::int64_t> &>(v));
+  }
+
+private:
+  friend class Meter;
+
+  struct Events {
+    std::int32_t tid;
+    std::uint64_t losts;
+    std::array<std::int64_t, 1024> counters;
+  };
+
+  std::atomic<int> id_{};
+  std::array<FixedString, 1024> names_;
+  ThreadStorage<Events> storage_;
+};
+
+inline MetricsImpl &Metrics() {
+  static MetricsImpl *const t = new MetricsImpl;
+  return *t;
+}
+
 class Meter final {
 public:
-  Meter(TracerImpl &t, const jerryct::string_view name);
+  Meter(MetricsImpl &t, const jerryct::string_view name);
   void Increment();
 
 private:
-  TracerImpl *t_;
+  MetricsImpl *t_;
   int id_;
 };
 

@@ -128,7 +128,7 @@ TEST(TracerTest, LockFreeQueue) {
 }
 
 TEST(Meter, Meter) {
-  TracerImpl tracer{};
+  MetricsImpl tracer{};
   Meter m{tracer, "foo"};
 
   std::thread t1{[m]() mutable {
@@ -145,10 +145,11 @@ TEST(Meter, Meter) {
   t2.join();
 
   std::unordered_map<std::string, std::int64_t> c{};
-  tracer.Export2([&c](const std::int32_t tid, std::array<FixedString, 1024> &names_,
-                      std::array<std::int64_t, 1024> &names2_, int count) {
-    for (int i = 0; i < count; ++i)
-      c[{names_[i].Get().data(), names_[i].Get().size()}] += names2_[i];
+  tracer.Export([&c](const span<const jerryct::trace::FixedString> names, const std::vector<std::int64_t> &counters) {
+    auto nt = names.begin();
+    auto ct = counters.begin();
+    for (; (nt != names.end()) && (ct != counters.end()); ++nt, ++ct)
+      c[{nt->Get().data(), nt->Get().size()}] = *ct;
   });
 
   for (auto &cc : c)

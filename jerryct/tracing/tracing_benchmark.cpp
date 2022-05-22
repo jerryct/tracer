@@ -38,17 +38,19 @@ void LockFreeQueue(benchmark::State &state) {
 
 void Metrics(benchmark::State &state) {
   std::cout << "new run\n";
-  std::unordered_map<std::string, std::int64_t> c{};
 
-  jerryct::trace::Meter m{jerryct::trace::Tracer(), "foo"};
+  jerryct::trace::Meter m{jerryct::trace::Metrics(), "foo"};
   for (auto _ : state) {
     m.Increment();
   }
 
-  jerryct::trace::Tracer().Export2([&c](const std::int32_t tid, std::array<jerryct::trace::FixedString, 1024> &names_,
-                                        std::array<std::int64_t, 1024> &names2_, int count) {
-    for (int i = 0; i < count; ++i)
-      c[{names_[i].Get().data(), names_[i].Get().size()}] += names2_[i];
+  std::unordered_map<std::string, std::int64_t> c{};
+  jerryct::trace::Metrics().Export([&c](const jerryct::trace::span<const jerryct::trace::FixedString> names,
+                                        const std::vector<std::int64_t> &counters) {
+    auto nt = names.begin();
+    auto ct = counters.begin();
+    for (; (nt != names.end()) && (ct != counters.end()); ++nt, ++ct)
+      c[{nt->Get().data(), nt->Get().size()}] = *ct;
   });
 
   for (auto &cc : c)
