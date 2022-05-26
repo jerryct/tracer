@@ -64,7 +64,7 @@ public:
     const std::uint32_t the_next{(he + 1U) % S};
 
     if (the_next == ta) {
-      losts_.fetch_add(1U, std::memory_order_release);
+      losts_.store(losts_.load(std::memory_order_relaxed) + 1U, std::memory_order_release);
       return;
     }
 

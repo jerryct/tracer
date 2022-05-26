@@ -34,8 +34,17 @@ void LockFreeQueue(benchmark::State &state) {
   }
 }
 
+void LockFreeQueueFull(benchmark::State &state) {
+  jerryct::trace::LockFreeQueue<int, 1> r{};
+  for (auto _ : state) {
+    r.Emplace(1);
+    benchmark::ClobberMemory();
+  }
+}
+
 BENCHMARK(PerThreadEvents);
 BENCHMARK(Span);
 BENCHMARK(LockFreeQueue);
+BENCHMARK(LockFreeQueueFull);
 
 } // namespace
