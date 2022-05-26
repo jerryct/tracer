@@ -93,6 +93,38 @@ private:
   alignas(64) ManualLifetime d_[S];
 };
 
+template <typename T> class ThreadStorage {
+public:
+  template <typename F> void Export(F &&func) {
+    typename std::forward_list<T>::iterator it;
+    {
+      std::lock_guard<std::mutex> guard{register_thread_};
+      it = per_thread_events_.begin();
+    }
+    for (; it != per_thread_events_.end(); ++it) {
+      func(*it);
+    }
+  }
+
+  T *PerThreadEvents() {
+    thread_local T *const id{RegisterThread()};
+    return id;
+  }
+
+  T *RegisterThread() {
+    std::lock_guard<std::mutex> guard{register_thread_};
+    per_thread_events_.emplace_front();
+    per_thread_events_.front().tid = thread_count_;
+    ++thread_count_;
+    return &per_thread_events_.front();
+  }
+
+private:
+  std::mutex register_thread_;
+  std::int32_t thread_count_{0};
+  std::forward_list<T> per_thread_events_;
+};
+
 class TracerImpl {
 public:
   struct Events {
@@ -104,35 +136,17 @@ public:
     std::vector<Event> v{};
     v.reserve(4096U);
 
-    std::forward_list<Events>::iterator it;
-    {
-      std::lock_guard<std::mutex> guard{register_thread_};
-      it = per_thread_events_.begin();
-    }
-    for (; it != per_thread_events_.end(); ++it) {
+    storage_.Export([&v, &func](Events &e) {
       v.clear();
-      it->events.ConsumeAll([&v](const Event &e) { v.push_back(e); });
-      func(it->tid, it->events.Losts(), static_cast<const std::vector<Event> &>(v));
-    }
+      e.events.ConsumeAll([&v](const Event &e) { v.push_back(e); });
+      func(e.tid, e.events.Losts(), static_cast<const std::vector<Event> &>(v));
+    });
   }
 
-  Events *PerThreadEvents() {
-    thread_local Events *const id{RegisterThread()};
-    return id;
-  }
-
-  Events *RegisterThread() {
-    std::lock_guard<std::mutex> guard{register_thread_};
-    per_thread_events_.emplace_front();
-    per_thread_events_.front().tid = thread_count_;
-    ++thread_count_;
-    return &per_thread_events_.front();
-  }
+  Events *PerThreadEvents() { return storage_.PerThreadEvents(); }
 
 private:
-  std::mutex register_thread_;
-  std::int32_t thread_count_{0};
-  std::forward_list<Events> per_thread_events_;
+  ThreadStorage<Events> storage_;
 };
 
 inline TracerImpl &Tracer() {
