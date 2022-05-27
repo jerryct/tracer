@@ -3,6 +3,7 @@
 #ifndef JERRYCT_TRACING_PROMETHEUS_EXPORTER_H
 #define JERRYCT_TRACING_PROMETHEUS_EXPORTER_H
 
+#include "jerryct/string_view.h"
 #include "jerryct/tracing/tracing.h"
 #include <chrono>
 #include <fmt/format.h>
@@ -94,25 +95,12 @@ private:
 
 class PrometheusExporter {
 public:
-  void operator()(const std::int32_t tid, const std::uint64_t losts, const std::vector<Event> &events);
+  void operator()(const std::unordered_map<string_view, std::int64_t> &counters);
   void Expose(fmt::memory_buffer &content);
 
 private:
-  struct Metrics {
-    std::chrono::nanoseconds min{std::chrono::nanoseconds::max()};
-    std::chrono::nanoseconds max{};
-    std::chrono::nanoseconds sum{};
-    std::int64_t count{};
-  };
+  std::unordered_map<string_view, std::int64_t> counters_;
 
-  struct Frame {
-    const std::string name;
-    const std::chrono::steady_clock::time_point ts;
-  };
-
-  std::unordered_map<std::string, Metrics> data_;
-  std::unordered_map<int, std::vector<Frame>> stacks_;
-  std::unordered_map<int, std::uint64_t> losts_;
   ConnectionHandler conn_{*this};
   std::mutex m_;
 };

@@ -127,62 +127,19 @@ void ConnectionHandler::Await(PrometheusExporter &exporter) {
   }
 }
 
-void PrometheusExporter::operator()(const std::int32_t tid, const std::uint64_t losts,
-                                    const std::vector<Event> &events) {
+void PrometheusExporter::operator()(const std::unordered_map<string_view, std::int64_t> &counters) {
   std::lock_guard<std::mutex> lk{m_};
-  auto &stack = stacks_[tid];
-  for (const Event &e : events) {
-    switch (e.phase) {
-    case Phase::begin:
-      stack.push_back({{e.name.Get().data(), e.name.Get().size()}, e.time_stamp});
-      break;
-    case Phase::end:
-      if (!stack.empty()) {
-        auto &data = data_[stack.back().name];
-        const auto d = e.time_stamp - stack.back().ts;
-        data.min = d < data.min ? d : data.min;
-        data.max = d > data.max ? d : data.max;
-        data.sum += d;
-        ++data.count;
-        stack.pop_back();
-      }
-      break;
-    }
-  }
-  losts_[tid] = losts;
+  counters_ = counters;
 }
 
 void PrometheusExporter::Expose(fmt::memory_buffer &content) {
   std::lock_guard<std::mutex> lk{m_};
-  content.append(fmt::string_view{"# TYPE duration_nanoseconds summary\n"});
-  for (auto &v : data_) {
-    content.append(fmt::string_view{"duration_nanoseconds{name=\""});
+  for (const auto &v : counters_) {
+    content.append(fmt::string_view{"# TYPE "});
     content.append(v.first);
-    content.append(fmt::string_view{"\",quantile=\"0\"} "});
-    content.append(fmt::format_int{v.second.min.count()});
-    content.append(fmt::string_view{"\nduration_nanoseconds{name=\""});
+    content.append(fmt::string_view{"_total counter\n"});
     content.append(v.first);
-    content.append(fmt::string_view{"\",quantile=\"1\"} "});
-    content.append(fmt::format_int{v.second.max.count()});
-    content.append(fmt::string_view{"\nduration_nanoseconds_sum{name=\""});
-    content.append(v.first);
-    content.append(fmt::string_view{"\"} "});
-    content.append(fmt::format_int{v.second.sum.count()});
-    content.append(fmt::string_view{"\nduration_nanoseconds_count{name=\""});
-    content.append(v.first);
-    content.append(fmt::string_view{"\"} "});
-    content.append(fmt::format_int{v.second.count});
-    content.push_back('\n');
-
-    v.second.min = std::chrono::nanoseconds::max();
-    v.second.max = {};
-  }
-
-  content.append(fmt::string_view{"# TYPE lost_events_total counter\n"});
-  for (const auto &v : losts_) {
-    content.append(fmt::string_view{"lost_events_total{tid=\""});
-    content.append(fmt::format_int{v.first});
-    content.append(fmt::string_view{"\"} "});
+    content.append(fmt::string_view{"_total "});
     content.append(fmt::format_int{v.second});
     content.push_back('\n');
   }

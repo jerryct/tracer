@@ -58,3 +58,13 @@ cc_binary(
         ":tracing",
     ],
 )
+
+cc_binary(
+    name = "example_metrics",
+    srcs = [
+        "example_metrics.cpp",
+    ],
+    deps = [
+        ":tracing",
+    ],
+)

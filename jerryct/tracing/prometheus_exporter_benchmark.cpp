@@ -11,10 +11,10 @@ void ExportPrometheus(benchmark::State &state) {
   fmt::memory_buffer content;
   content.reserve(1024);
 
-  auto name = std::string(64, 'c');
+  jerryct::trace::Counter c{jerryct::trace::Meter(), std::string(64, 'c')};
   for (auto _ : state) {
-    jerryct::trace::Span s{jerryct::trace::Tracer(), name};
-    jerryct::trace::Tracer().Export(prom);
+    c.Increment();
+    jerryct::trace::Meter().Export(prom);
     content.clear();
     prom.Expose(content);
     benchmark::DoNotOptimize(content);

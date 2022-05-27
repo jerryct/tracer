@@ -70,6 +70,12 @@ add_executable(example_tracing
 target_link_libraries(example_tracing PRIVATE tracing)
 target_compile_options(example_tracing PRIVATE "-Wall" "-Wextra" "-Wpedantic" "-Wformat=2" "-Wconversion")
 
+add_executable(example_metrics
+  example_metrics.cpp
+)
+target_link_libraries(example_metrics PRIVATE tracing)
+target_compile_options(example_metrics PRIVATE "-Wall" "-Wextra" "-Wpedantic" "-Wformat=2" "-Wconversion")
+
 if (JERRYCT_TRACER_ENABLE_TESTING)
   add_executable(unit_tests
     jerryct/tracing/chrome_trace_event_exporter_tests.cpp
