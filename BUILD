@@ -50,9 +50,9 @@ cc_binary(
 )
 
 cc_binary(
-    name = "example",
+    name = "example_tracing",
     srcs = [
-        "example.cpp",
+        "example_tracing.cpp",
     ],
     deps = [
         ":tracing",

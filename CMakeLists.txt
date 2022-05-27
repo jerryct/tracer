@@ -64,11 +64,11 @@ target_include_directories(tracing PUBLIC
 target_link_libraries(tracing PUBLIC jerryct::string_view Threads::Threads fmt::fmt)
 target_compile_options(tracing PRIVATE "-Wall" "-Wextra" "-Wpedantic" "-Wformat=2" "-Wconversion")
 
-add_executable(example
-  example.cpp
+add_executable(example_tracing
+  example_tracing.cpp
 )
-target_link_libraries(example PRIVATE tracing)
-target_compile_options(example PRIVATE "-Wall" "-Wextra" "-Wpedantic" "-Wformat=2" "-Wconversion")
+target_link_libraries(example_tracing PRIVATE tracing)
+target_compile_options(example_tracing PRIVATE "-Wall" "-Wextra" "-Wpedantic" "-Wformat=2" "-Wconversion")
 
 if (JERRYCT_TRACER_ENABLE_TESTING)
   add_executable(unit_tests
