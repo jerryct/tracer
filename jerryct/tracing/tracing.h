@@ -101,13 +101,13 @@ private:
 template <typename T> class ThreadStorage {
 public:
   template <typename F> void Export(F &&func) {
-    typename std::forward_list<T>::iterator it;
+    typename std::forward_list<Content>::iterator it;
     {
       std::lock_guard<std::mutex> guard{register_thread_};
       it = per_thread_events_.begin();
     }
     for (; it != per_thread_events_.end(); ++it) {
-      func(*it);
+      func(it->tid, it->data);
     }
   }
 
@@ -121,19 +121,23 @@ public:
     per_thread_events_.emplace_front();
     per_thread_events_.front().tid = thread_count_;
     ++thread_count_;
-    return &per_thread_events_.front();
+    return &per_thread_events_.front().data;
   }
 
 private:
+  struct Content {
+    std::int32_t tid;
+    T data;
+  };
+
   std::mutex register_thread_;
   std::int32_t thread_count_{0};
-  std::forward_list<T> per_thread_events_;
+  std::forward_list<Content> per_thread_events_;
 };
 
 class TracerImpl {
 public:
   struct Events {
-    std::int32_t tid;
     LockFreeQueue<Event, 4096> events;
   };
 
@@ -141,10 +145,10 @@ public:
     std::vector<Event> v{};
     v.reserve(4096U);
 
-    storage_.Export([&v, &func](Events &e) {
+    storage_.Export([&v, &func](std::int32_t tid, Events &e) {
       v.clear();
       e.events.ConsumeAll([&v](const Event &e) { v.push_back(e); });
-      func(e.tid, e.events.Losts(), static_cast<const std::vector<Event> &>(v));
+      func(tid, e.events.Losts(), static_cast<const std::vector<Event> &>(v));
     });
   }
 
@@ -180,7 +184,6 @@ struct Measurement {
 class MeterImpl {
 public:
   struct Measurements {
-    std::int32_t tid;
     LockFreeQueue<Measurement, 4096> events;
   };
 
@@ -190,7 +193,7 @@ public:
     std::int64_t &total_losts{counters_[string_view{"measurement_losts"}]};
     total_losts = 0;
 
-    storage_.Export([&total_losts, &v = counters_](Measurements &e) {
+    storage_.Export([&total_losts, &v = counters_](std::int32_t /*unused*/, Measurements &e) {
       total_losts += e.events.Losts();
       e.events.ConsumeAll([&v](const Measurement &e) { v[e.id->Get()] += e.value; });
     });
