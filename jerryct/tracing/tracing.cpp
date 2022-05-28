@@ -15,5 +15,12 @@ Span::~Span() noexcept {
   t_->events.Emplace(Phase::end, now, jerryct::string_view{""});
 }
 
+Counter::Counter(MeterImpl &t, const jerryct::string_view name) : t_{&t}, id_{t_->RegisterName(name)} {
+  t_->PerThreadEvents()->events.Emplace(0, id_);
+}
+
+void Counter::Increment() { t_->PerThreadEvents()->events.Emplace(1, id_); }
+void Counter::Increment(const std::int64_t v) { t_->PerThreadEvents()->events.Emplace(v, id_); }
+
 } // namespace trace
 } // namespace jerryct

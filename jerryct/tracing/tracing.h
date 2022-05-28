@@ -11,7 +11,9 @@
 #include <cstring>
 #include <forward_list>
 #include <mutex>
+#include <set>
 #include <type_traits>
+#include <unordered_map>
 #include <vector>
 
 namespace jerryct {
@@ -38,6 +40,9 @@ private:
   char d_[64];
   std::size_t s_;
 };
+
+constexpr bool operator==(const FixedString &lhs, const FixedString &rhs) noexcept { return lhs.Get() == rhs.Get(); }
+constexpr bool operator<(const FixedString &lhs, const FixedString &rhs) noexcept { return lhs.Get() < rhs.Get(); }
 
 struct Event {
   Phase phase;
@@ -165,6 +170,68 @@ public:
 
 private:
   TracerImpl::Events *t_;
+};
+
+struct Measurement {
+  std::int64_t value;
+  const FixedString *id;
+};
+
+class MeterImpl {
+public:
+  struct Measurements {
+    std::int32_t tid;
+    LockFreeQueue<Measurement, 4096> events;
+  };
+
+  MeterImpl() { RegisterName("measurement_losts"); }
+
+  template <typename F> void Export(F &&func) {
+    std::int64_t &total_losts{counters_[string_view{"measurement_losts"}]};
+    total_losts = 0;
+
+    storage_.Export([&total_losts, &v = counters_](Measurements &e) {
+      total_losts += e.events.Losts();
+      e.events.ConsumeAll([&v](const Measurement &e) { v[e.id->Get()] += e.value; });
+    });
+
+    func(static_cast<const std::unordered_map<string_view, std::int64_t> &>(counters_));
+  }
+
+  Measurements *PerThreadEvents() { return storage_.PerThreadEvents(); }
+
+  const FixedString *RegisterName(const string_view name) {
+    std::lock_guard<std::mutex> guard{register_names_};
+    return &(*names_.emplace(name).first);
+  }
+
+private:
+  std::mutex register_names_;
+  std::set<FixedString> names_;
+  std::unordered_map<string_view, std::int64_t> counters_;
+  ThreadStorage<Measurements> storage_;
+};
+
+inline MeterImpl &Meter() {
+  static MeterImpl *const t = new MeterImpl;
+  return *t;
+}
+
+class Counter final {
+public:
+  Counter(MeterImpl &t, const jerryct::string_view name);
+  Counter(const Counter &) = default;
+  Counter(Counter &&) = delete;
+  Counter &operator=(const Counter &) = default;
+  Counter &operator=(Counter &&) = delete;
+  ~Counter() noexcept = default;
+
+  void Increment();
+  void Increment(const std::int64_t v);
+
+private:
+  MeterImpl *t_;
+  const FixedString *id_;
 };
 
 } // namespace trace

@@ -23,6 +23,16 @@ void Span(benchmark::State &state) {
   }
 }
 
+void Counter(benchmark::State &state) {
+  jerryct::trace::Counter c{jerryct::trace::Meter(), std::string(64, 'c')};
+  for (auto _ : state) {
+    c.Increment();
+    jerryct::trace::Meter().PerThreadEvents()->events.ConsumeAll([](auto /*unused*/) {});
+    benchmark::DoNotOptimize(jerryct::trace::Meter().PerThreadEvents());
+    benchmark::ClobberMemory();
+  }
+}
+
 void LockFreeQueue(benchmark::State &state) {
   jerryct::trace::LockFreeQueue<int, 4> r{};
   for (auto _ : state) {
@@ -44,6 +54,7 @@ void LockFreeQueueFull(benchmark::State &state) {
 
 BENCHMARK(PerThreadEvents);
 BENCHMARK(Span);
+BENCHMARK(Counter);
 BENCHMARK(LockFreeQueue);
 BENCHMARK(LockFreeQueueFull);
 
