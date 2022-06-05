@@ -2,14 +2,14 @@ cc_library(
     name = "tracing",
     srcs = [
         "jerryct/tracing/chrome_trace_event_exporter.cpp",
-        "jerryct/tracing/prometheus_exporter.cpp",
+        "jerryct/tracing/open_metrics_exporter.cpp",
         "jerryct/tracing/r_exporter.cpp",
         "jerryct/tracing/stats_exporter.cpp",
         "jerryct/tracing/tracing.cpp",
     ],
     hdrs = [
         "jerryct/tracing/chrome_trace_event_exporter.h",
-        "jerryct/tracing/prometheus_exporter.h",
+        "jerryct/tracing/open_metrics_exporter.h",
         "jerryct/tracing/r_exporter.h",
         "jerryct/tracing/stats_exporter.h",
         "jerryct/tracing/tracing.h",
@@ -39,7 +39,7 @@ cc_binary(
     name = "benchmark",
     srcs = [
         "jerryct/tracing/chrome_trace_event_exporter_benchmark.cpp",
-        "jerryct/tracing/prometheus_exporter_benchmark.cpp",
+        "jerryct/tracing/open_metrics_exporter_benchmark.cpp",
         "jerryct/tracing/stats_exporter_benchmark.cpp",
         "jerryct/tracing/tracing_benchmark.cpp",
     ],

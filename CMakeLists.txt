@@ -52,7 +52,7 @@ add_subdirectory(../string_view _build/string_view)
 
 add_library(tracing
   jerryct/tracing/chrome_trace_event_exporter.cpp
-  jerryct/tracing/prometheus_exporter.cpp
+  jerryct/tracing/open_metrics_exporter.cpp
   jerryct/tracing/r_exporter.cpp
   jerryct/tracing/stats_exporter.cpp
   jerryct/tracing/tracing.cpp
@@ -90,7 +90,7 @@ if (JERRYCT_TRACER_ENABLE_BENCHMARK)
   add_executable(benchmarks
       jerryct/tracing/chrome_trace_event_exporter_benchmark.cpp
       jerryct/tracing/clock_benchmark.cpp
-      jerryct/tracing/prometheus_exporter_benchmark.cpp
+      jerryct/tracing/open_metrics_exporter_benchmark.cpp
       jerryct/tracing/stats_exporter_benchmark.cpp
       jerryct/tracing/tracing_benchmark.cpp
   )

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 
-#ifndef JERRYCT_TRACING_PROMETHEUS_EXPORTER_H
-#define JERRYCT_TRACING_PROMETHEUS_EXPORTER_H
+#ifndef JERRYCT_TRACING_OPEN_METRICS_EXPORTER_H
+#define JERRYCT_TRACING_OPEN_METRICS_EXPORTER_H
 
 #include "jerryct/string_view.h"
 #include "jerryct/tracing/tracing.h"
@@ -47,13 +47,13 @@ private:
   std::thread t_;
 };
 
-class PrometheusExporter;
+class OpenMetricsExporter;
 
 class RequestHandler {
 public:
   explicit RequestHandler(FileDesc fd);
 
-  void operator()(PrometheusExporter &exporter);
+  void operator()(OpenMetricsExporter &exporter);
 
 private:
   FileDesc fd_;
@@ -83,17 +83,17 @@ private:
 
 class ConnectionHandler {
 public:
-  explicit ConnectionHandler(PrometheusExporter &exporter);
+  explicit ConnectionHandler(OpenMetricsExporter &exporter);
 
 private:
-  void Await(PrometheusExporter &exporter);
+  void Await(OpenMetricsExporter &exporter);
 
   FileDesc fd_;
   std::forward_list<Async> connections_;
   JoinThread awaiter_;
 };
 
-class PrometheusExporter {
+class OpenMetricsExporter {
 public:
   void operator()(const std::unordered_map<string_view, std::uint64_t> &counters);
   void Expose(fmt::memory_buffer &content);
@@ -108,4 +108,4 @@ private:
 } // namespace trace
 } // namespace jerryct
 
-#endif // JERRYCT_TRACING_PROMETHEUS_EXPORTER_H
+#endif // JERRYCT_TRACING_OPEN_METRICS_EXPORTER_H

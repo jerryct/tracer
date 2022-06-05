@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-#include "jerryct/tracing/prometheus_exporter.h"
+#include "jerryct/tracing/open_metrics_exporter.h"
 #include "jerryct/tracing/tracing.h"
 #include <thread>
 
@@ -19,7 +19,7 @@ int main() {
 
   t.join();
 
-  jerryct::trace::PrometheusExporter p{};
+  jerryct::trace::OpenMetricsExporter p{};
   jerryct::trace::Meter().Export(p);
 
   fmt::memory_buffer content;

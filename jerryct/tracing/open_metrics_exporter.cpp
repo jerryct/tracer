@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-#include "jerryct/tracing/prometheus_exporter.h"
+#include "jerryct/tracing/open_metrics_exporter.h"
 #include <arpa/inet.h>
 #include <array>
 #include <fmt/core.h>
@@ -62,7 +62,7 @@ RequestHandler::RequestHandler(FileDesc fd) : fd_{std::move(fd)} {
   content_.reserve(1024);
 }
 
-void RequestHandler::operator()(PrometheusExporter &exporter) {
+void RequestHandler::operator()(OpenMetricsExporter &exporter) {
   while (true) {
     if (::read(fd_.fd_, request_.data(), request_.size()) <= 0) {
       break;
@@ -89,7 +89,7 @@ void RequestHandler::operator()(PrometheusExporter &exporter) {
   }
 }
 
-ConnectionHandler::ConnectionHandler(PrometheusExporter &exporter)
+ConnectionHandler::ConnectionHandler(OpenMetricsExporter &exporter)
     : fd_{::socket(AF_INET, SOCK_STREAM, 0)}, connections_{}, awaiter_{} {
   if (!fd_.IsValid()) {
     throw;
@@ -115,7 +115,7 @@ ConnectionHandler::ConnectionHandler(PrometheusExporter &exporter)
   awaiter_ = JoinThread{fd_.fd_, &ConnectionHandler::Await, this, std::ref(exporter)};
 }
 
-void ConnectionHandler::Await(PrometheusExporter &exporter) {
+void ConnectionHandler::Await(OpenMetricsExporter &exporter) {
   while (true) {
     const int new_socket{::accept(fd_.fd_, nullptr, nullptr)};
     if (new_socket < 0) {
@@ -127,12 +127,12 @@ void ConnectionHandler::Await(PrometheusExporter &exporter) {
   }
 }
 
-void PrometheusExporter::operator()(const std::unordered_map<string_view, std::uint64_t> &counters) {
+void OpenMetricsExporter::operator()(const std::unordered_map<string_view, std::uint64_t> &counters) {
   std::lock_guard<std::mutex> lk{m_};
   counters_ = counters;
 }
 
-void PrometheusExporter::Expose(fmt::memory_buffer &content) {
+void OpenMetricsExporter::Expose(fmt::memory_buffer &content) {
   std::lock_guard<std::mutex> lk{m_};
   for (const auto &v : counters_) {
     content.append(fmt::string_view{"# TYPE "});
