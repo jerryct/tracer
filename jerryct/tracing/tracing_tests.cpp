@@ -144,8 +144,8 @@ TEST(Meter, Counter_WhenCounterCreated_ExpectCounterNameIsRegistered) {
   }};
   t.join();
 
-  meter.Export([](const std::unordered_map<string_view, std::int64_t> &data) {
-    const std::vector<std::unordered_map<string_view, std::int64_t>::value_type> expected{
+  meter.Export([](const std::unordered_map<string_view, std::uint64_t> &data) {
+    const std::vector<std::unordered_map<string_view, std::uint64_t>::value_type> expected{
         std::make_pair(string_view{"measurement_losts"}, 0), std::make_pair(string_view{"foo1"}, 0),
         std::make_pair(string_view{"foo2"}, 0), std::make_pair(string_view{"bar1"}, 0),
         std::make_pair(string_view{"bar2"}, 0)};
@@ -168,8 +168,8 @@ TEST(Meter, Counter_WhenSingleThreadedCounting_ExpectAccumulatedCount) {
   }};
   t.join();
 
-  meter.Export([](const std::unordered_map<string_view, std::int64_t> &data) {
-    const std::vector<std::unordered_map<string_view, std::int64_t>::value_type> expected{
+  meter.Export([](const std::unordered_map<string_view, std::uint64_t> &data) {
+    const std::vector<std::unordered_map<string_view, std::uint64_t>::value_type> expected{
         std::make_pair(string_view{"measurement_losts"}, 1), std::make_pair(string_view{"foo"}, 4095)};
     EXPECT_TRUE(std::is_permutation(data.cbegin(), data.cend(), expected.cbegin(), expected.cend()));
   });
@@ -188,7 +188,7 @@ TEST(Meter, Counter_WhenSingleThreadedCounting_ExpectAccumulatedCountAcrossMulti
     }};
     t1.join();
 
-    meter.Export([](const std::unordered_map<string_view, std::int64_t> &) {});
+    meter.Export([](const std::unordered_map<string_view, std::uint64_t> &) {});
 
     std::thread t2{[c]() mutable {
       for (int i{0}; i < 1000; ++i) {
@@ -199,8 +199,8 @@ TEST(Meter, Counter_WhenSingleThreadedCounting_ExpectAccumulatedCountAcrossMulti
   }};
   t.join();
 
-  meter.Export([](const std::unordered_map<string_view, std::int64_t> &data) {
-    const std::vector<std::unordered_map<string_view, std::int64_t>::value_type> expected{
+  meter.Export([](const std::unordered_map<string_view, std::uint64_t> &data) {
+    const std::vector<std::unordered_map<string_view, std::uint64_t>::value_type> expected{
         std::make_pair(string_view{"measurement_losts"}, 0), std::make_pair(string_view{"foo"}, 3000)};
     EXPECT_TRUE(std::is_permutation(data.cbegin(), data.cend(), expected.cbegin(), expected.cend()));
   });
@@ -227,8 +227,8 @@ TEST(Meter, Counter_WhenMultiThreadedCounting_ExpectAccumulatedCountAcrossMultip
   }};
   t.join();
 
-  meter.Export([](const std::unordered_map<string_view, std::int64_t> &data) {
-    const std::vector<std::unordered_map<string_view, std::int64_t>::value_type> expected{
+  meter.Export([](const std::unordered_map<string_view, std::uint64_t> &data) {
+    const std::vector<std::unordered_map<string_view, std::uint64_t>::value_type> expected{
         std::make_pair(string_view{"measurement_losts"}, 3), std::make_pair(string_view{"foo"}, 8190)};
     EXPECT_TRUE(std::is_permutation(data.cbegin(), data.cend(), expected.cbegin(), expected.cend()));
   });
@@ -255,8 +255,8 @@ TEST(Meter, Counter_WhenMultipleCountersWithSameName_ExpectAccumulatedCounts) {
   }};
   t.join();
 
-  meter.Export([](const std::unordered_map<string_view, std::int64_t> &data) {
-    const std::vector<std::unordered_map<string_view, std::int64_t>::value_type> expected{
+  meter.Export([](const std::unordered_map<string_view, std::uint64_t> &data) {
+    const std::vector<std::unordered_map<string_view, std::uint64_t>::value_type> expected{
         std::make_pair(string_view{"measurement_losts"}, 0), std::make_pair(string_view{"foo"}, 4000)};
     EXPECT_TRUE(std::is_permutation(data.cbegin(), data.cend(), expected.cbegin(), expected.cend()));
   });

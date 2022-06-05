@@ -177,7 +177,7 @@ private:
 };
 
 struct Measurement {
-  std::int64_t value;
+  std::uint64_t value;
   const FixedString *id;
 };
 
@@ -190,7 +190,7 @@ public:
   MeterImpl() { RegisterName("measurement_losts"); }
 
   template <typename F> void Export(F &&func) {
-    std::int64_t &total_losts{counters_[string_view{"measurement_losts"}]};
+    std::uint64_t &total_losts{counters_[string_view{"measurement_losts"}]};
     total_losts = 0;
 
     storage_.Export([&total_losts, &v = counters_](std::int32_t /*unused*/, Measurements &e) {
@@ -198,7 +198,7 @@ public:
       e.events.ConsumeAll([&v](const Measurement &e) { v[e.id->Get()] += e.value; });
     });
 
-    func(static_cast<const std::unordered_map<string_view, std::int64_t> &>(counters_));
+    func(static_cast<const std::unordered_map<string_view, std::uint64_t> &>(counters_));
   }
 
   Measurements *PerThreadEvents() { return storage_.PerThreadEvents(); }
@@ -211,7 +211,7 @@ public:
 private:
   std::mutex register_names_;
   std::set<FixedString> names_;
-  std::unordered_map<string_view, std::int64_t> counters_;
+  std::unordered_map<string_view, std::uint64_t> counters_;
   ThreadStorage<Measurements> storage_;
 };
 

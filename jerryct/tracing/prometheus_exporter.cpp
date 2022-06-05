@@ -127,7 +127,7 @@ void ConnectionHandler::Await(PrometheusExporter &exporter) {
   }
 }
 
-void PrometheusExporter::operator()(const std::unordered_map<string_view, std::int64_t> &counters) {
+void PrometheusExporter::operator()(const std::unordered_map<string_view, std::uint64_t> &counters) {
   std::lock_guard<std::mutex> lk{m_};
   counters_ = counters;
 }

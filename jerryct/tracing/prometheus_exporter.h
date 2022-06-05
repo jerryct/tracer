@@ -95,11 +95,11 @@ private:
 
 class PrometheusExporter {
 public:
-  void operator()(const std::unordered_map<string_view, std::int64_t> &counters);
+  void operator()(const std::unordered_map<string_view, std::uint64_t> &counters);
   void Expose(fmt::memory_buffer &content);
 
 private:
-  std::unordered_map<string_view, std::int64_t> counters_;
+  std::unordered_map<string_view, std::uint64_t> counters_;
 
   ConnectionHandler conn_{*this};
   std::mutex m_;
