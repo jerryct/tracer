@@ -195,7 +195,7 @@ public:
 
     storage_.Export([&total_losts, &v = counters_](std::int32_t /*unused*/, Measurements &e) {
       total_losts += e.events.Losts();
-      e.events.ConsumeAll([&v](const Measurement &e) { v[e.id->Get()] += e.value; });
+      e.events.ConsumeAll([&v](const Measurement &m) { v[m.id->Get()] += m.value; });
     });
 
     func(static_cast<const std::unordered_map<string_view, std::uint64_t> &>(counters_));

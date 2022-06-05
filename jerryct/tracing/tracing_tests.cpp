@@ -156,17 +156,17 @@ TEST(Meter, Counter_WhenCounterCreated_ExpectCounterNameIsRegistered) {
 TEST(Meter, Counter_WhenSingleThreadedCounting_ExpectAccumulatedCount) {
   MeterImpl meter{};
 
-  std::thread t{[&meter]() {
+  std::thread t1{[&meter]() {
     Counter c{meter, "foo"};
 
-    std::thread t{[c]() mutable {
+    std::thread t2{[c]() mutable {
       for (int i{0}; i < 4096; ++i) {
         c.Add();
       }
     }};
-    t.join();
+    t2.join();
   }};
-  t.join();
+  t1.join();
 
   meter.Export([](const std::unordered_map<string_view, std::uint64_t> &data) {
     const std::vector<std::unordered_map<string_view, std::uint64_t>::value_type> expected{
