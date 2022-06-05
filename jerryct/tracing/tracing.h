@@ -229,8 +229,8 @@ public:
   Counter &operator=(Counter &&) = delete;
   ~Counter() noexcept = default;
 
-  void Increment();
-  void Increment(const std::int64_t v);
+  void Add();
+  void Add(const std::int64_t v);
 
 private:
   MeterImpl *t_;

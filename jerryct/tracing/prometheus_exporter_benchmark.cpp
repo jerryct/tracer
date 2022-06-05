@@ -13,7 +13,7 @@ void ExportPrometheus(benchmark::State &state) {
 
   jerryct::trace::Counter c{jerryct::trace::Meter(), std::string(64, 'c')};
   for (auto _ : state) {
-    c.Increment();
+    c.Add();
     jerryct::trace::Meter().Export(prom);
     content.clear();
     prom.Expose(content);

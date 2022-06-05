@@ -9,12 +9,12 @@ int main() {
 
   std::thread t{[c]() mutable {
     for (int i = 0; i < 100; ++i) {
-      c.Increment();
+      c.Add();
     }
   }};
 
   for (int i = 0; i < 10; ++i) {
-    c.Increment();
+    c.Add();
   }
 
   t.join();

@@ -161,7 +161,7 @@ TEST(Meter, Counter_WhenSingleThreadedCounting_ExpectAccumulatedCount) {
 
     std::thread t{[c]() mutable {
       for (int i{0}; i < 4096; ++i) {
-        c.Increment();
+        c.Add();
       }
     }};
     t.join();
@@ -183,7 +183,7 @@ TEST(Meter, Counter_WhenSingleThreadedCounting_ExpectAccumulatedCountAcrossMulti
 
     std::thread t1{[c]() mutable {
       for (int i{0}; i < 2000; ++i) {
-        c.Increment();
+        c.Add();
       }
     }};
     t1.join();
@@ -192,7 +192,7 @@ TEST(Meter, Counter_WhenSingleThreadedCounting_ExpectAccumulatedCountAcrossMulti
 
     std::thread t2{[c]() mutable {
       for (int i{0}; i < 1000; ++i) {
-        c.Increment();
+        c.Add();
       }
     }};
     t2.join();
@@ -214,12 +214,12 @@ TEST(Meter, Counter_WhenMultiThreadedCounting_ExpectAccumulatedCountAcrossMultip
 
     std::thread t1{[c]() mutable {
       for (int i{0}; i < 4096; ++i) {
-        c.Increment();
+        c.Add();
       }
     }};
     std::thread t2{[&c]() {
       for (int i{0}; i < 4097; ++i) {
-        c.Increment();
+        c.Add();
       }
     }};
     t1.join();
@@ -241,13 +241,13 @@ TEST(Meter, Counter_WhenMultipleCountersWithSameName_ExpectAccumulatedCounts) {
     std::thread t1{[&meter]() {
       Counter c{meter, "foo"};
       for (int i{0}; i < 1000; ++i) {
-        c.Increment();
+        c.Add();
       }
     }};
     std::thread t2{[&meter]() {
       Counter c{meter, "foo"};
       for (int i{0}; i < 3000; ++i) {
-        c.Increment();
+        c.Add();
       }
     }};
     t1.join();

@@ -19,8 +19,8 @@ Counter::Counter(MeterImpl &t, const jerryct::string_view name) : t_{&t}, id_{t_
   t_->PerThreadEvents()->events.Emplace(0, id_);
 }
 
-void Counter::Increment() { t_->PerThreadEvents()->events.Emplace(1, id_); }
-void Counter::Increment(const std::int64_t v) { t_->PerThreadEvents()->events.Emplace(v, id_); }
+void Counter::Add() { t_->PerThreadEvents()->events.Emplace(1, id_); }
+void Counter::Add(const std::int64_t v) { t_->PerThreadEvents()->events.Emplace(v, id_); }
 
 } // namespace trace
 } // namespace jerryct
