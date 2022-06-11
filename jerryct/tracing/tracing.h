@@ -223,11 +223,6 @@ inline MeterImpl &Meter() {
 class Counter final {
 public:
   Counter(MeterImpl &t, const jerryct::string_view name);
-  Counter(const Counter &) = default;
-  Counter(Counter &&) = delete;
-  Counter &operator=(const Counter &) = default;
-  Counter &operator=(Counter &&) = delete;
-  ~Counter() noexcept = default;
 
   void Add();
   void Add(const std::int64_t v);

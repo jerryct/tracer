@@ -190,7 +190,7 @@ TEST(Meter, Counter_WhenSingleThreadedCounting_ExpectAccumulatedCountAcrossMulti
 
     meter.Export([](const std::unordered_map<string_view, std::uint64_t> &) {});
 
-    std::thread t2{[c]() mutable {
+    std::thread t2{[c = std::move(c)]() mutable {
       for (int i{0}; i < 1000; ++i) {
         c.Add();
       }
@@ -217,7 +217,7 @@ TEST(Meter, Counter_WhenMultiThreadedCounting_ExpectAccumulatedCountAcrossMultip
         c.Add();
       }
     }};
-    std::thread t2{[&c]() {
+    std::thread t2{[c = std::move(c)]() mutable {
       for (int i{0}; i < 4097; ++i) {
         c.Add();
       }
