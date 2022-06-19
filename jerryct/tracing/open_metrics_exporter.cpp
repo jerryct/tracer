@@ -203,7 +203,7 @@ void OpenMetricsExporter::operator()(const std::unordered_map<string_view, std::
   for (const auto &c : counters) {
     content_.append(fmt::string_view{"# TYPE "});
     content_.append(c.first);
-    content_.append(fmt::string_view{"_total counter\n"});
+    content_.append(fmt::string_view{" counter\n"});
     content_.append(c.first);
     content_.append(fmt::string_view{"_total "});
     content_.append(fmt::format_int{c.second});
