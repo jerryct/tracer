@@ -31,7 +31,7 @@ public:
     std::vector<Event> v{};
     v.reserve(4096U);
 
-    storage_.Export([&v, &func](std::int32_t tid, Events &e) {
+    storage_.Export([&v, &func](const std::int32_t tid, Events &e) {
       v.clear();
       e.events.ConsumeAll([&v](const Event &e) { v.push_back(e); });
       func(tid, e.events.Losts(), static_cast<const std::vector<Event> &>(v));

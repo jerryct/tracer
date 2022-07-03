@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <arpa/inet.h>
 #include <array>
-#include <errno.h>
+#include <cerrno>
 #include <exception>
 #include <fmt/core.h>
 #include <fmt/format.h>
@@ -59,7 +59,7 @@ HttpServer::HttpServer()
   }
 
   const int non_blocking{1};
-  if (::ioctl(listener_.fd_, FIONBIO, &non_blocking)) {
+  if (::ioctl(listener_.fd_, FIONBIO, &non_blocking) < 0) {
     throw std::runtime_error{"cannot set socket to non blocking"};
   }
 
@@ -174,7 +174,6 @@ void HttpServer::Step(fmt::memory_buffer &content_) {
     }
 
     if (compress_array) {
-      compress_array = false;
       const auto it = std::remove_if(fds.begin(), fds.end(), [](const pollfd &fd) { return fd.fd == -1; });
       fds.erase(it, fds.end());
     }
