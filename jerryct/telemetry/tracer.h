@@ -18,7 +18,7 @@ enum class Phase : std::int32_t { begin, end };
 struct Event {
   Phase phase;
   std::chrono::steady_clock::time_point time_stamp;
-  FixedString name;
+  FixedString<64> name;
 };
 
 class TracerImpl {

@@ -20,7 +20,7 @@ public:
 
 private:
   MeterImpl *t_;
-  const FixedString *id_;
+  const FixedString<64> *id_;
 };
 
 } // namespace telemetry

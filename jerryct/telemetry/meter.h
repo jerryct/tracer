@@ -17,7 +17,7 @@ namespace telemetry {
 
 struct Measurement {
   std::uint64_t value;
-  const FixedString *id;
+  const FixedString<64> *id;
 };
 
 class MeterImpl {
@@ -40,14 +40,14 @@ public:
 
   Measurements *PerThreadEvents() { return storage_.PerThreadEvents(); }
 
-  const FixedString *RegisterName(const string_view name) {
+  const FixedString<64> *RegisterName(const string_view name) {
     std::lock_guard<std::mutex> guard{register_names_};
     return &(*names_.emplace(name).first);
   }
 
 private:
   std::mutex register_names_;
-  std::set<FixedString> names_;
+  std::set<FixedString<64>> names_;
   std::unordered_map<string_view, std::uint64_t> counters_;
   ThreadStorage<Measurements> storage_;
 };
