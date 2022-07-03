@@ -22,9 +22,7 @@ struct Measurement {
 
 class MeterImpl {
 public:
-  struct Measurements {
-    LockFreeQueue<Measurement, 4096> events;
-  };
+  using Measurements = LockFreeQueue<Measurement, 4096>;
 
   MeterImpl() { RegisterName("measurement_losts"); }
 
@@ -32,9 +30,9 @@ public:
     std::uint64_t &total_losts{counters_[string_view{"measurement_losts"}]};
     total_losts = 0;
 
-    storage_.Export([&total_losts, &v = counters_](const std::int32_t /*unused*/, Measurements &e) {
-      total_losts += e.events.Losts();
-      e.events.ConsumeAll([&v](const Measurement &m) { v[m.id->Get()] += m.value; });
+    storage_.Export([&total_losts, &v = counters_](const std::int32_t /*unused*/, Measurements &m) {
+      total_losts += m.Losts();
+      m.ConsumeAll([&v](const Measurement &m) { v[m.id->Get()] += m.value; });
     });
 
     std::forward<F>(func)(static_cast<const std::unordered_map<string_view, std::uint64_t> &>(counters_));

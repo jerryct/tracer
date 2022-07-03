@@ -23,9 +23,7 @@ struct Event {
 
 class TracerImpl {
 public:
-  struct Events {
-    LockFreeQueue<Event, 4096> events;
-  };
+  using Events = LockFreeQueue<Event, 4096>;
 
   template <typename F> void Export(F &&func) {
     std::vector<Event> v{};
@@ -33,8 +31,8 @@ public:
 
     storage_.Export([&v, &func](const std::int32_t tid, Events &e) {
       v.clear();
-      e.events.ConsumeAll([&v](const Event &e) { v.push_back(e); });
-      func(tid, e.events.Losts(), static_cast<const std::vector<Event> &>(v));
+      e.ConsumeAll([&v](const Event &e) { v.push_back(e); });
+      func(tid, e.Losts(), static_cast<const std::vector<Event> &>(v));
     });
   }
 
