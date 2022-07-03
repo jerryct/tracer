@@ -3,6 +3,7 @@ cc_library(
     srcs = [
         "jerryct/telemetry/chrome_trace_event_exporter.cpp",
         "jerryct/telemetry/counter.cpp",
+        "jerryct/telemetry/delta_counter_exporter.cpp",
         "jerryct/telemetry/http_server.cpp",
         "jerryct/telemetry/open_metrics_exporter.cpp",
         "jerryct/telemetry/r_exporter.cpp",
@@ -12,6 +13,7 @@ cc_library(
     hdrs = [
         "jerryct/telemetry/chrome_trace_event_exporter.h",
         "jerryct/telemetry/counter.h",
+        "jerryct/telemetry/delta_counter_exporter.h",
         "jerryct/telemetry/fixed_string.h",
         "jerryct/telemetry/http_server.h",
         "jerryct/telemetry/lock_free_queue.h",
@@ -37,6 +39,7 @@ cc_test(
     srcs = [
         "jerryct/telemetry/chrome_trace_event_exporter_tests.cpp",
         "jerryct/telemetry/counter_tests.cpp",
+        "jerryct/telemetry/delta_counter_exporter_tests.cpp",
         "jerryct/telemetry/lock_free_queue_tests.cpp",
         "jerryct/telemetry/span_tests.cpp",
     ],

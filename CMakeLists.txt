@@ -55,6 +55,8 @@ add_library(telemetry
   jerryct/telemetry/chrome_trace_event_exporter.h
   jerryct/telemetry/counter.cpp
   jerryct/telemetry/counter.h
+  jerryct/telemetry/delta_counter_exporter.cpp
+  jerryct/telemetry/delta_counter_exporter.h
   jerryct/telemetry/fixed_string.h
   jerryct/telemetry/http_server.cpp
   jerryct/telemetry/http_server.h
@@ -94,6 +96,7 @@ if (JERRYCT_TRACER_ENABLE_TESTING)
   add_executable(unit_tests
     jerryct/telemetry/chrome_trace_event_exporter_tests.cpp
     jerryct/telemetry/counter_tests.cpp
+    jerryct/telemetry/delta_counter_exporter_tests.cpp
     jerryct/telemetry/lock_free_queue_tests.cpp
     jerryct/telemetry/span_tests.cpp
   )
