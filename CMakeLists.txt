@@ -56,6 +56,8 @@ add_library(telemetry
   jerryct/telemetry/counter.cpp
   jerryct/telemetry/counter.h
   jerryct/telemetry/fixed_string.h
+  jerryct/telemetry/http_server.cpp
+  jerryct/telemetry/http_server.h
   jerryct/telemetry/lock_free_queue.h
   jerryct/telemetry/meter.h
   jerryct/telemetry/open_metrics_exporter.cpp

@@ -3,6 +3,7 @@ cc_library(
     srcs = [
         "jerryct/telemetry/chrome_trace_event_exporter.cpp",
         "jerryct/telemetry/counter.cpp",
+        "jerryct/telemetry/http_server.cpp",
         "jerryct/telemetry/open_metrics_exporter.cpp",
         "jerryct/telemetry/r_exporter.cpp",
         "jerryct/telemetry/span.cpp",
@@ -12,6 +13,7 @@ cc_library(
         "jerryct/telemetry/chrome_trace_event_exporter.h",
         "jerryct/telemetry/counter.h",
         "jerryct/telemetry/fixed_string.h",
+        "jerryct/telemetry/http_server.h",
         "jerryct/telemetry/lock_free_queue.h",
         "jerryct/telemetry/meter.h",
         "jerryct/telemetry/open_metrics_exporter.h",
