@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-#include "jerryct/tracing/lock_free_queue.h"
+#include "jerryct/telemetry/lock_free_queue.h"
 #include <benchmark/benchmark.h>
 
 namespace {

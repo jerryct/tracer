@@ -3,9 +3,9 @@
 #ifndef JERRYCT_TELEMETRY_TRACER_H
 #define JERRYCT_TELEMETRY_TRACER_H
 
-#include "jerryct/tracing/fixed_string.h"
-#include "jerryct/tracing/lock_free_queue.h"
-#include "jerryct/tracing/thread_storage.h"
+#include "jerryct/telemetry/fixed_string.h"
+#include "jerryct/telemetry/lock_free_queue.h"
+#include "jerryct/telemetry/thread_storage.h"
 #include <chrono>
 #include <cstdint>
 #include <vector>

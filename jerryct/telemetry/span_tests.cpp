@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-#include "jerryct/tracing/span.h"
+#include "jerryct/telemetry/span.h"
 #include <algorithm>
 #include <gtest/gtest.h>
 #include <thread>

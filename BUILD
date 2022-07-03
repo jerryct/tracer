@@ -1,25 +1,25 @@
 cc_library(
-    name = "tracing",
+    name = "telemetry",
     srcs = [
-        "jerryct/tracing/chrome_trace_event_exporter.cpp",
-        "jerryct/tracing/counter.cpp",
-        "jerryct/tracing/open_metrics_exporter.cpp",
-        "jerryct/tracing/r_exporter.cpp",
-        "jerryct/tracing/span.cpp",
-        "jerryct/tracing/stats_exporter.cpp",
+        "jerryct/telemetry/chrome_trace_event_exporter.cpp",
+        "jerryct/telemetry/counter.cpp",
+        "jerryct/telemetry/open_metrics_exporter.cpp",
+        "jerryct/telemetry/r_exporter.cpp",
+        "jerryct/telemetry/span.cpp",
+        "jerryct/telemetry/stats_exporter.cpp",
     ],
     hdrs = [
-        "jerryct/tracing/chrome_trace_event_exporter.h",
-        "jerryct/tracing/counter.h",
-        "jerryct/tracing/fixed_string.h",
-        "jerryct/tracing/lock_free_queue.h",
-        "jerryct/tracing/meter.h",
-        "jerryct/tracing/open_metrics_exporter.h",
-        "jerryct/tracing/r_exporter.h",
-        "jerryct/tracing/span.h",
-        "jerryct/tracing/stats_exporter.h",
-        "jerryct/tracing/thread_storage.h",
-        "jerryct/tracing/tracer.h",
+        "jerryct/telemetry/chrome_trace_event_exporter.h",
+        "jerryct/telemetry/counter.h",
+        "jerryct/telemetry/fixed_string.h",
+        "jerryct/telemetry/lock_free_queue.h",
+        "jerryct/telemetry/meter.h",
+        "jerryct/telemetry/open_metrics_exporter.h",
+        "jerryct/telemetry/r_exporter.h",
+        "jerryct/telemetry/span.h",
+        "jerryct/telemetry/stats_exporter.h",
+        "jerryct/telemetry/thread_storage.h",
+        "jerryct/telemetry/tracer.h",
     ],
     copts = ["-pthread"],
     linkopts = ["-pthread"],
@@ -33,13 +33,13 @@ cc_library(
 cc_test(
     name = "test",
     srcs = [
-        "jerryct/tracing/chrome_trace_event_exporter_tests.cpp",
-        "jerryct/tracing/counter_tests.cpp",
-        "jerryct/tracing/lock_free_queue_tests.cpp",
-        "jerryct/tracing/span_tests.cpp",
+        "jerryct/telemetry/chrome_trace_event_exporter_tests.cpp",
+        "jerryct/telemetry/counter_tests.cpp",
+        "jerryct/telemetry/lock_free_queue_tests.cpp",
+        "jerryct/telemetry/span_tests.cpp",
     ],
     deps = [
-        ":tracing",
+        ":telemetry",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -47,16 +47,16 @@ cc_test(
 cc_binary(
     name = "benchmark",
     srcs = [
-        "jerryct/tracing/chrome_trace_event_exporter_benchmark.cpp",
-        "jerryct/tracing/counter_benchmark.cpp",
-        "jerryct/tracing/lock_free_queue_benchmark.cpp",
-        "jerryct/tracing/open_metrics_exporter_benchmark.cpp",
-        "jerryct/tracing/span_benchmark.cpp",
-        "jerryct/tracing/stats_exporter_benchmark.cpp",
-        "jerryct/tracing/tracer_benchmark.cpp",
+        "jerryct/telemetry/chrome_trace_event_exporter_benchmark.cpp",
+        "jerryct/telemetry/counter_benchmark.cpp",
+        "jerryct/telemetry/lock_free_queue_benchmark.cpp",
+        "jerryct/telemetry/open_metrics_exporter_benchmark.cpp",
+        "jerryct/telemetry/span_benchmark.cpp",
+        "jerryct/telemetry/stats_exporter_benchmark.cpp",
+        "jerryct/telemetry/tracer_benchmark.cpp",
     ],
     deps = [
-        ":tracing",
+        ":telemetry",
         "@com_google_benchmark//:benchmark_main",
     ],
 )
@@ -67,7 +67,7 @@ cc_binary(
         "example_tracing.cpp",
     ],
     deps = [
-        ":tracing",
+        ":telemetry",
     ],
 )
 
@@ -77,6 +77,6 @@ cc_binary(
         "example_metrics.cpp",
     ],
     deps = [
-        ":tracing",
+        ":telemetry",
     ],
 )

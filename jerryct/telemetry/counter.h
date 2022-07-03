@@ -4,8 +4,8 @@
 #define JERRYCT_TELEMETRY_COUNTER_H
 
 #include "jerryct/string_view.h"
-#include "jerryct/tracing/fixed_string.h"
-#include "jerryct/tracing/meter.h"
+#include "jerryct/telemetry/fixed_string.h"
+#include "jerryct/telemetry/meter.h"
 #include <cstdint>
 
 namespace jerryct {

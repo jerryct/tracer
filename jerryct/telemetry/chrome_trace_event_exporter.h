@@ -3,7 +3,7 @@
 #ifndef JERRYCT_TELEMETRY_CHROME_TRACE_EVENT_EXPORTER_H
 #define JERRYCT_TELEMETRY_CHROME_TRACE_EVENT_EXPORTER_H
 
-#include "jerryct/tracing/tracer.h"
+#include "jerryct/telemetry/tracer.h"
 #include <cstdint>
 #include <cstdio>
 #include <fmt/format.h>

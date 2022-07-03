@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-#include "jerryct/tracing/stats_exporter.h"
+#include "jerryct/telemetry/stats_exporter.h"
 
 namespace jerryct {
 namespace telemetry {

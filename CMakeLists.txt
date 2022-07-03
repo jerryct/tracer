@@ -50,67 +50,67 @@ add_subdirectory(../googletest _build/googletest)
 set(JERRYCT_STRING_VIEW_ENABLE_TESTING OFF CACHE BOOL "")
 add_subdirectory(../string_view _build/string_view)
 
-add_library(tracing
-  jerryct/tracing/chrome_trace_event_exporter.cpp
-  jerryct/tracing/chrome_trace_event_exporter.h
-  jerryct/tracing/counter.cpp
-  jerryct/tracing/counter.h
-  jerryct/tracing/fixed_string.h
-  jerryct/tracing/lock_free_queue.h
-  jerryct/tracing/meter.h
-  jerryct/tracing/open_metrics_exporter.cpp
-  jerryct/tracing/open_metrics_exporter.h
-  jerryct/tracing/r_exporter.cpp
-  jerryct/tracing/r_exporter.h
-  jerryct/tracing/span.cpp
-  jerryct/tracing/span.h
-  jerryct/tracing/stats_exporter.cpp
-  jerryct/tracing/stats_exporter.h
-  jerryct/tracing/thread_storage.h
-  jerryct/tracing/tracer.h
+add_library(telemetry
+  jerryct/telemetry/chrome_trace_event_exporter.cpp
+  jerryct/telemetry/chrome_trace_event_exporter.h
+  jerryct/telemetry/counter.cpp
+  jerryct/telemetry/counter.h
+  jerryct/telemetry/fixed_string.h
+  jerryct/telemetry/lock_free_queue.h
+  jerryct/telemetry/meter.h
+  jerryct/telemetry/open_metrics_exporter.cpp
+  jerryct/telemetry/open_metrics_exporter.h
+  jerryct/telemetry/r_exporter.cpp
+  jerryct/telemetry/r_exporter.h
+  jerryct/telemetry/span.cpp
+  jerryct/telemetry/span.h
+  jerryct/telemetry/stats_exporter.cpp
+  jerryct/telemetry/stats_exporter.h
+  jerryct/telemetry/thread_storage.h
+  jerryct/telemetry/tracer.h
 )
-target_include_directories(tracing PUBLIC
+target_include_directories(telemetry PUBLIC
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
   $<INSTALL_INTERFACE:.>
 )
-target_link_libraries(tracing PUBLIC jerryct::string_view Threads::Threads fmt::fmt)
-target_compile_options(tracing PRIVATE "-Wall" "-Wextra" "-Wpedantic" "-Wformat=2" "-Wconversion")
+target_link_libraries(telemetry PUBLIC jerryct::string_view Threads::Threads fmt::fmt)
+target_compile_options(telemetry PRIVATE "-Wall" "-Wextra" "-Wpedantic" "-Wformat=2" "-Wconversion")
 
 add_executable(example_tracing
   example_tracing.cpp
 )
-target_link_libraries(example_tracing PRIVATE tracing)
+target_link_libraries(example_tracing PRIVATE telemetry)
 target_compile_options(example_tracing PRIVATE "-Wall" "-Wextra" "-Wpedantic" "-Wformat=2" "-Wconversion")
 
 add_executable(example_metrics
   example_metrics.cpp
 )
-target_link_libraries(example_metrics PRIVATE tracing)
+target_link_libraries(example_metrics PRIVATE telemetry)
 target_compile_options(example_metrics PRIVATE "-Wall" "-Wextra" "-Wpedantic" "-Wformat=2" "-Wconversion")
 
 if (JERRYCT_TRACER_ENABLE_TESTING)
   add_executable(unit_tests
-    jerryct/tracing/chrome_trace_event_exporter_tests.cpp
-    jerryct/tracing/counter_tests.cpp
-    jerryct/tracing/lock_free_queue_tests.cpp
-    jerryct/tracing/span_tests.cpp
+    jerryct/telemetry/chrome_trace_event_exporter_tests.cpp
+    jerryct/telemetry/counter_tests.cpp
+    jerryct/telemetry/lock_free_queue_tests.cpp
+    jerryct/telemetry/span_tests.cpp
   )
-  target_link_libraries(unit_tests PRIVATE tracing gtest_main)
+  target_link_libraries(unit_tests PRIVATE telemetry gtest_main)
   target_compile_options(unit_tests PRIVATE "-Wall" "-Wextra" "-Wpedantic" "-Wformat=2" "-Wconversion")
   add_test(unit_tests unit_tests)
 endif()
 
 if (JERRYCT_TRACER_ENABLE_BENCHMARK)
   add_executable(benchmarks
-      jerryct/tracing/chrome_trace_event_exporter_benchmark.cpp
-      jerryct/tracing/clock_benchmark.cpp
-      jerryct/tracing/counter_benchmark.cpp
-      jerryct/tracing/lock_free_queue_benchmark.cpp
-      jerryct/tracing/open_metrics_exporter_benchmark.cpp
-      jerryct/tracing/span_benchmark.cpp
-      jerryct/tracing/stats_exporter_benchmark.cpp
-      jerryct/tracing/tracer_benchmark.cpp
+      jerryct/telemetry/chrome_trace_event_exporter_benchmark.cpp
+      jerryct/telemetry/clock_benchmark.cpp
+      jerryct/telemetry/counter_benchmark.cpp
+      jerryct/telemetry/lock_free_queue_benchmark.cpp
+      jerryct/telemetry/open_metrics_exporter_benchmark.cpp
+      jerryct/telemetry/span_benchmark.cpp
+      jerryct/telemetry/stats_exporter_benchmark.cpp
+      jerryct/telemetry/tracer_benchmark.cpp
   )
-  target_link_libraries(benchmarks PRIVATE tracing benchmark::benchmark_main)
+  target_link_libraries(benchmarks PRIVATE telemetry benchmark::benchmark_main)
   target_compile_options(benchmarks PRIVATE "-Wall" "-Wextra" "-Wpedantic" "-Wformat=2" "-Wconversion")
 endif()

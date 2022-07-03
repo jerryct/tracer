@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-#include "jerryct/tracing/chrome_trace_event_exporter.h"
+#include "jerryct/telemetry/chrome_trace_event_exporter.h"
 #include <chrono>
 #include <cstdio>
 #include <fmt/core.h>

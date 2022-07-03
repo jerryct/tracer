@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-#include "jerryct/tracing/r_exporter.h"
+#include "jerryct/telemetry/r_exporter.h"
 #include <algorithm>
 #include <cstdio>
 #include <numeric>

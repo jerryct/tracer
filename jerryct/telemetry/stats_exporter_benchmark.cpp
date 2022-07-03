@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 
-#include "jerryct/tracing/span.h"
-#include "jerryct/tracing/stats_exporter.h"
+#include "jerryct/telemetry/span.h"
+#include "jerryct/telemetry/stats_exporter.h"
 #include <benchmark/benchmark.h>
 
 namespace {

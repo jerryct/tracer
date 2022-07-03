@@ -4,7 +4,7 @@
 #define JERRYCT_TELEMETRY_OPEN_METRICS_EXPORTER_H
 
 #include "jerryct/string_view.h"
-#include "jerryct/tracing/counter.h"
+#include "jerryct/telemetry/counter.h"
 #include <cstdint>
 #include <fmt/format.h>
 #include <poll.h>

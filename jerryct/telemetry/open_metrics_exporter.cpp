@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-#include "jerryct/tracing/open_metrics_exporter.h"
+#include "jerryct/telemetry/open_metrics_exporter.h"
 #include <algorithm>
 #include <arpa/inet.h>
 #include <array>

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 
-#include "jerryct/tracing/chrome_trace_event_exporter.h"
-#include "jerryct/tracing/span.h"
+#include "jerryct/telemetry/chrome_trace_event_exporter.h"
+#include "jerryct/telemetry/span.h"
 #include <benchmark/benchmark.h>
 
 namespace {

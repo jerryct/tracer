@@ -4,7 +4,7 @@
 #define JERRYCT_TELEMETRY_SPAN_H
 
 #include "jerryct/string_view.h"
-#include "jerryct/tracing/tracer.h"
+#include "jerryct/telemetry/tracer.h"
 
 namespace jerryct {
 namespace telemetry {

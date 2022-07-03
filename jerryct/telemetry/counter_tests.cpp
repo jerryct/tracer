@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-#include "jerryct/tracing/counter.h"
+#include "jerryct/telemetry/counter.h"
 #include <algorithm>
 #include <gtest/gtest.h>
 #include <thread>

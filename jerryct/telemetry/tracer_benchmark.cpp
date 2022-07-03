@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-#include "jerryct/tracing/tracer.h"
+#include "jerryct/telemetry/tracer.h"
 #include <benchmark/benchmark.h>
 
 namespace {

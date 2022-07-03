@@ -3,7 +3,7 @@
 #ifndef JERRYCT_TELEMETRY_STATS_EXPORTER_H
 #define JERRYCT_TELEMETRY_STATS_EXPORTER_H
 
-#include "jerryct/tracing/tracer.h"
+#include "jerryct/telemetry/tracer.h"
 #include <chrono>
 #include <cstdio>
 #include <string>
