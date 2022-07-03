@@ -30,8 +30,8 @@ private:
   std::size_t s_;
 };
 
-constexpr bool operator==(const FixedString &lhs, const FixedString &rhs) noexcept { return lhs.Get() == rhs.Get(); }
-constexpr bool operator<(const FixedString &lhs, const FixedString &rhs) noexcept { return lhs.Get() < rhs.Get(); }
+inline bool operator==(const FixedString &lhs, const FixedString &rhs) noexcept { return lhs.Get() == rhs.Get(); }
+inline bool operator<(const FixedString &lhs, const FixedString &rhs) noexcept { return lhs.Get() < rhs.Get(); }
 
 } // namespace telemetry
 } // namespace jerryct
