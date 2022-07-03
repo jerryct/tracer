@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 
+#include "jerryct/tracing/counter.h"
 #include "jerryct/tracing/open_metrics_exporter.h"
-#include "jerryct/tracing/tracing.h"
 #include <thread>
 
 int main() {

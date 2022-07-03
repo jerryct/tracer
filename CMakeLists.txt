@@ -53,14 +53,21 @@ add_subdirectory(../string_view _build/string_view)
 add_library(tracing
   jerryct/tracing/chrome_trace_event_exporter.cpp
   jerryct/tracing/chrome_trace_event_exporter.h
+  jerryct/tracing/counter.cpp
+  jerryct/tracing/counter.h
+  jerryct/tracing/fixed_string.h
+  jerryct/tracing/lock_free_queue.h
+  jerryct/tracing/meter.h
   jerryct/tracing/open_metrics_exporter.cpp
   jerryct/tracing/open_metrics_exporter.h
   jerryct/tracing/r_exporter.cpp
   jerryct/tracing/r_exporter.h
+  jerryct/tracing/span.cpp
+  jerryct/tracing/span.h
   jerryct/tracing/stats_exporter.cpp
   jerryct/tracing/stats_exporter.h
-  jerryct/tracing/tracing.cpp
-  jerryct/tracing/tracing.h
+  jerryct/tracing/thread_storage.h
+  jerryct/tracing/tracer.h
 )
 target_include_directories(tracing PUBLIC
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
@@ -84,7 +91,9 @@ target_compile_options(example_metrics PRIVATE "-Wall" "-Wextra" "-Wpedantic" "-
 if (JERRYCT_TRACER_ENABLE_TESTING)
   add_executable(unit_tests
     jerryct/tracing/chrome_trace_event_exporter_tests.cpp
-    jerryct/tracing/tracing_tests.cpp
+    jerryct/tracing/counter_tests.cpp
+    jerryct/tracing/lock_free_queue_tests.cpp
+    jerryct/tracing/span_tests.cpp
   )
   target_link_libraries(unit_tests PRIVATE tracing gtest_main)
   target_compile_options(unit_tests PRIVATE "-Wall" "-Wextra" "-Wpedantic" "-Wformat=2" "-Wconversion")
@@ -95,9 +104,12 @@ if (JERRYCT_TRACER_ENABLE_BENCHMARK)
   add_executable(benchmarks
       jerryct/tracing/chrome_trace_event_exporter_benchmark.cpp
       jerryct/tracing/clock_benchmark.cpp
+      jerryct/tracing/counter_benchmark.cpp
+      jerryct/tracing/lock_free_queue_benchmark.cpp
       jerryct/tracing/open_metrics_exporter_benchmark.cpp
+      jerryct/tracing/span_benchmark.cpp
       jerryct/tracing/stats_exporter_benchmark.cpp
-      jerryct/tracing/tracing_benchmark.cpp
+      jerryct/tracing/tracer_benchmark.cpp
   )
   target_link_libraries(benchmarks PRIVATE tracing benchmark::benchmark_main)
   target_compile_options(benchmarks PRIVATE "-Wall" "-Wextra" "-Wpedantic" "-Wformat=2" "-Wconversion")

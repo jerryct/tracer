@@ -3,7 +3,7 @@
 #ifndef JERRYCT_TELEMETRY_R_EXPORTER_H
 #define JERRYCT_TELEMETRY_R_EXPORTER_H
 
-#include "jerryct/tracing/tracing.h"
+#include "jerryct/tracing/tracer.h"
 #include <chrono>
 #include <string>
 #include <unordered_map>
