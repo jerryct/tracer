@@ -52,10 +52,15 @@ add_subdirectory(../string_view _build/string_view)
 
 add_library(tracing
   jerryct/tracing/chrome_trace_event_exporter.cpp
+  jerryct/tracing/chrome_trace_event_exporter.h
   jerryct/tracing/open_metrics_exporter.cpp
+  jerryct/tracing/open_metrics_exporter.h
   jerryct/tracing/r_exporter.cpp
+  jerryct/tracing/r_exporter.h
   jerryct/tracing/stats_exporter.cpp
+  jerryct/tracing/stats_exporter.h
   jerryct/tracing/tracing.cpp
+  jerryct/tracing/tracing.h
 )
 target_include_directories(tracing PUBLIC
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
