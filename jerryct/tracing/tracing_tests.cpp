@@ -8,7 +8,7 @@
 #include <vector>
 
 namespace jerryct {
-namespace trace {
+namespace telemetry {
 namespace {
 
 TEST(TracerTest, SingleThread) {
@@ -263,5 +263,5 @@ TEST(Meter, Counter_WhenMultipleCountersWithSameName_ExpectAccumulatedCounts) {
 }
 
 } // namespace
-} // namespace trace
+} // namespace telemetry
 } // namespace jerryct

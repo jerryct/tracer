@@ -13,24 +13,24 @@ void Async() {
     t.join();
   }
   t = std::thread{[]() {
-    jerryct::trace::Span _{jerryct::trace::Tracer(), "Async"};
+    jerryct::telemetry::Span _{jerryct::telemetry::Tracer(), "Async"};
     std::this_thread::sleep_for(std::chrono::milliseconds{42});
   }};
 }
 
 void Bar() {
-  jerryct::trace::Span _{jerryct::trace::Tracer(), "Bar"};
+  jerryct::telemetry::Span _{jerryct::telemetry::Tracer(), "Bar"};
   std::this_thread::sleep_for(std::chrono::milliseconds{42});
   Async();
 }
 
 void Baz() {
-  jerryct::trace::Span _{jerryct::trace::Tracer(), "Baz"};
+  jerryct::telemetry::Span _{jerryct::telemetry::Tracer(), "Baz"};
   std::this_thread::sleep_for(std::chrono::milliseconds{100});
 }
 
 void Foo() {
-  jerryct::trace::Span _{jerryct::trace::Tracer(), "Foo"};
+  jerryct::telemetry::Span _{jerryct::telemetry::Tracer(), "Foo"};
   std::this_thread::sleep_for(std::chrono::milliseconds{23});
   Baz();
 }
@@ -39,7 +39,7 @@ void Foo() {
 
 int main() {
   {
-    jerryct::trace::Span _{jerryct::trace::Tracer(), "main"};
+    jerryct::telemetry::Span _{jerryct::telemetry::Tracer(), "main"};
     for (int i = 0; i < 10; ++i) {
       std::this_thread::sleep_for(std::chrono::milliseconds{1});
       Foo();
@@ -51,7 +51,7 @@ int main() {
     }
   }
 
-  jerryct::trace::Tracer().Export(jerryct::trace::ChromeTraceEventExporter{"trace_event.json"});
+  jerryct::telemetry::Tracer().Export(jerryct::telemetry::ChromeTraceEventExporter{"trace_event.json"});
 
   return 0;
 }

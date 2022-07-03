@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 
-#ifndef JERRYCT_TRACING_OPEN_METRICS_EXPORTER_H
-#define JERRYCT_TRACING_OPEN_METRICS_EXPORTER_H
+#ifndef JERRYCT_TELEMETRY_OPEN_METRICS_EXPORTER_H
+#define JERRYCT_TELEMETRY_OPEN_METRICS_EXPORTER_H
 
 #include "jerryct/string_view.h"
 #include "jerryct/tracing/tracing.h"
@@ -12,7 +12,7 @@
 #include <vector>
 
 namespace jerryct {
-namespace trace {
+namespace telemetry {
 
 struct FileDesc {
   FileDesc() noexcept = default;
@@ -64,7 +64,7 @@ private:
   HttpServer server_{};
 };
 
-} // namespace trace
+} // namespace telemetry
 } // namespace jerryct
 
-#endif // JERRYCT_TRACING_OPEN_METRICS_EXPORTER_H
+#endif // JERRYCT_TELEMETRY_OPEN_METRICS_EXPORTER_H

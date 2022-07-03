@@ -7,12 +7,12 @@
 namespace {
 
 void ExportChromeTrace(benchmark::State &state) {
-  jerryct::trace::ChromeTraceEventExporter chrome{"test.json"};
+  jerryct::telemetry::ChromeTraceEventExporter chrome{"test.json"};
 
   auto name = std::string(64, 'c');
   for (auto _ : state) {
-    jerryct::trace::Span s{jerryct::trace::Tracer(), name};
-    jerryct::trace::Tracer().Export(chrome);
+    jerryct::telemetry::Span s{jerryct::telemetry::Tracer(), name};
+    jerryct::telemetry::Tracer().Export(chrome);
   }
 }
 

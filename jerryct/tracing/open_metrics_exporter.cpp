@@ -16,7 +16,7 @@
 #include <unistd.h>
 
 namespace jerryct {
-namespace trace {
+namespace telemetry {
 
 FileDesc::FileDesc(int fd) : fd_{fd} {}
 
@@ -218,5 +218,5 @@ void OpenMetricsExporter::Expose() {
   server_.Step(content_);
 }
 
-} // namespace trace
+} // namespace telemetry
 } // namespace jerryct

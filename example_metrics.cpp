@@ -5,7 +5,7 @@
 #include <thread>
 
 int main() {
-  jerryct::trace::Counter c{jerryct::trace::Meter(), "foo"};
+  jerryct::telemetry::Counter c{jerryct::telemetry::Meter(), "foo"};
 
   std::thread t{[c]() mutable {
     for (int i = 0; i < 100; ++i) {
@@ -19,8 +19,8 @@ int main() {
 
   t.join();
 
-  jerryct::trace::OpenMetricsExporter p{};
-  jerryct::trace::Meter().Export(p);
+  jerryct::telemetry::OpenMetricsExporter p{};
+  jerryct::telemetry::Meter().Export(p);
   p.Expose();
 
   return 0;

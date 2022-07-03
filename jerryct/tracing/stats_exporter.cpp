@@ -3,7 +3,7 @@
 #include "jerryct/tracing/stats_exporter.h"
 
 namespace jerryct {
-namespace trace {
+namespace telemetry {
 
 StatsExporter::~StatsExporter() noexcept { Print(); }
 
@@ -47,5 +47,5 @@ void StatsExporter::Print() {
   printf("                                             %7ld total lost event(s)\n", total);
 }
 
-} // namespace trace
+} // namespace telemetry
 } // namespace jerryct

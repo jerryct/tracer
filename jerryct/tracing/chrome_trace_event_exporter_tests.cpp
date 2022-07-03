@@ -7,7 +7,7 @@
 #include <string>
 
 namespace jerryct {
-namespace trace {
+namespace telemetry {
 namespace {
 
 std::string Export(const std::int32_t tid, const std::uint64_t losts, const std::vector<Event> &events) {
@@ -124,5 +124,5 @@ TEST(ChromeTraceEventExporterTest, Rotate) {
 }
 
 } // namespace
-} // namespace trace
+} // namespace telemetry
 } // namespace jerryct

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 
-#ifndef JERRYCT_TRACING_STATS_EXPORTER_H
-#define JERRYCT_TRACING_STATS_EXPORTER_H
+#ifndef JERRYCT_TELEMETRY_STATS_EXPORTER_H
+#define JERRYCT_TELEMETRY_STATS_EXPORTER_H
 
 #include "jerryct/tracing/tracing.h"
 #include <chrono>
@@ -11,7 +11,7 @@
 #include <vector>
 
 namespace jerryct {
-namespace trace {
+namespace telemetry {
 
 class StatsExporter {
 public:
@@ -44,7 +44,7 @@ private:
   std::unordered_map<int, std::uint64_t> losts_;
 };
 
-} // namespace trace
+} // namespace telemetry
 } // namespace jerryct
 
-#endif // JERRYCT_TRACING_STATS_EXPORTER_H
+#endif // JERRYCT_TELEMETRY_STATS_EXPORTER_H

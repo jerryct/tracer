@@ -7,7 +7,7 @@
 #include <string>
 
 namespace jerryct {
-namespace trace {
+namespace telemetry {
 
 FileRotate::FileRotate(const std::string &filename) : f_{}, rotation_size_{5}, filename_{filename} { Rotate(); }
 
@@ -101,5 +101,5 @@ void ChromeTraceEventExporter::Rotate() {
   std::fprintf(f_.Get(), "[");
 }
 
-} // namespace trace
+} // namespace telemetry
 } // namespace jerryct

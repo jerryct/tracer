@@ -7,12 +7,12 @@
 namespace {
 
 void ExportOpenMetrics(benchmark::State &state) {
-  jerryct::trace::OpenMetricsExporter exporter{};
+  jerryct::telemetry::OpenMetricsExporter exporter{};
 
-  jerryct::trace::Counter c{jerryct::trace::Meter(), std::string(64, 'c')};
+  jerryct::telemetry::Counter c{jerryct::telemetry::Meter(), std::string(64, 'c')};
   for (auto _ : state) {
     c.Add();
-    jerryct::trace::Meter().Export(exporter);
+    jerryct::telemetry::Meter().Export(exporter);
     benchmark::ClobberMemory();
   }
 }

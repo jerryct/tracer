@@ -94,7 +94,7 @@ void Serialize(int fd, const std::string &n, const std::vector<double> &b) {
 } // namespace
 
 namespace jerryct {
-namespace trace {
+namespace telemetry {
 
 RExporter::RExporter(const std::string &filename) : fd_{open(filename.c_str(), O_CREAT | O_WRONLY, 0644)} {
   if (-1 == fd_) {
@@ -144,5 +144,5 @@ void RExporter::operator()(const std::int32_t tid, const std::uint64_t /*unused*
   }
 }
 
-} // namespace trace
+} // namespace telemetry
 } // namespace jerryct

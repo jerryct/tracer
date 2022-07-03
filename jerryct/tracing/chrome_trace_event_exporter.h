@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 
-#ifndef JERRYCT_TRACING_CHROME_TRACE_EVENT_EXPORTER_H
-#define JERRYCT_TRACING_CHROME_TRACE_EVENT_EXPORTER_H
+#ifndef JERRYCT_TELEMETRY_CHROME_TRACE_EVENT_EXPORTER_H
+#define JERRYCT_TELEMETRY_CHROME_TRACE_EVENT_EXPORTER_H
 
 #include "jerryct/tracing/tracing.h"
 #include <cstdint>
@@ -12,7 +12,7 @@
 #include <vector>
 
 namespace jerryct {
-namespace trace {
+namespace telemetry {
 
 class FileRotate {
 public:
@@ -44,7 +44,7 @@ private:
   fmt::memory_buffer buf_;
 };
 
-} // namespace trace
+} // namespace telemetry
 } // namespace jerryct
 
-#endif // JERRYCT_TRACING_CHROME_TRACE_EVENT_EXPORTER_H
+#endif // JERRYCT_TELEMETRY_CHROME_TRACE_EVENT_EXPORTER_H

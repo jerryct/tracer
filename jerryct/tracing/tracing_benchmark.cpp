@@ -7,7 +7,7 @@ namespace {
 
 void PerThreadEvents(benchmark::State &state) {
   for (auto _ : state) {
-    auto *m = jerryct::trace::Tracer().PerThreadEvents();
+    auto *m = jerryct::telemetry::Tracer().PerThreadEvents();
     benchmark::DoNotOptimize(m);
     benchmark::ClobberMemory();
   }
@@ -16,25 +16,25 @@ void PerThreadEvents(benchmark::State &state) {
 void Span(benchmark::State &state) {
   auto name = std::string(64, 'c');
   for (auto _ : state) {
-    jerryct::trace::Span s{jerryct::trace::Tracer(), name};
-    jerryct::trace::Tracer().PerThreadEvents()->events.ConsumeAll([](auto /*unused*/) {});
-    benchmark::DoNotOptimize(jerryct::trace::Tracer().PerThreadEvents());
+    jerryct::telemetry::Span s{jerryct::telemetry::Tracer(), name};
+    jerryct::telemetry::Tracer().PerThreadEvents()->events.ConsumeAll([](auto /*unused*/) {});
+    benchmark::DoNotOptimize(jerryct::telemetry::Tracer().PerThreadEvents());
     benchmark::ClobberMemory();
   }
 }
 
 void Counter(benchmark::State &state) {
-  jerryct::trace::Counter c{jerryct::trace::Meter(), std::string(64, 'c')};
+  jerryct::telemetry::Counter c{jerryct::telemetry::Meter(), std::string(64, 'c')};
   for (auto _ : state) {
     c.Add();
-    jerryct::trace::Meter().PerThreadEvents()->events.ConsumeAll([](auto /*unused*/) {});
-    benchmark::DoNotOptimize(jerryct::trace::Meter().PerThreadEvents());
+    jerryct::telemetry::Meter().PerThreadEvents()->events.ConsumeAll([](auto /*unused*/) {});
+    benchmark::DoNotOptimize(jerryct::telemetry::Meter().PerThreadEvents());
     benchmark::ClobberMemory();
   }
 }
 
 void LockFreeQueue(benchmark::State &state) {
-  jerryct::trace::LockFreeQueue<int, 4> r{};
+  jerryct::telemetry::LockFreeQueue<int, 4> r{};
   for (auto _ : state) {
     r.Emplace(1);
     r.Emplace(2);
@@ -45,7 +45,7 @@ void LockFreeQueue(benchmark::State &state) {
 }
 
 void LockFreeQueueFull(benchmark::State &state) {
-  jerryct::trace::LockFreeQueue<int, 1> r{};
+  jerryct::telemetry::LockFreeQueue<int, 1> r{};
   for (auto _ : state) {
     r.Emplace(1);
     benchmark::ClobberMemory();

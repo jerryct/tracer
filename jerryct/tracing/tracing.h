@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 
-#ifndef JERRYCT_TRACING_TRACING_H
-#define JERRYCT_TRACING_TRACING_H
+#ifndef JERRYCT_TELEMETRY_TRACING_H
+#define JERRYCT_TELEMETRY_TRACING_H
 
 #include "jerryct/string_view.h"
 #include <atomic>
@@ -17,7 +17,7 @@
 #include <vector>
 
 namespace jerryct {
-namespace trace {
+namespace telemetry {
 
 enum class Phase : std::int32_t { begin, end };
 
@@ -232,7 +232,7 @@ private:
   const FixedString *id_;
 };
 
-} // namespace trace
+} // namespace telemetry
 } // namespace jerryct
 
-#endif // JERRYCT_TRACING_TRACING_H
+#endif // JERRYCT_TELEMETRY_TRACING_H

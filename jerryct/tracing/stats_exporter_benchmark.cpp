@@ -7,12 +7,12 @@
 namespace {
 
 void ExportStats(benchmark::State &state) {
-  jerryct::trace::StatsExporter stats{};
+  jerryct::telemetry::StatsExporter stats{};
 
   auto name = std::string(64, 'c');
   for (auto _ : state) {
-    jerryct::trace::Span s{jerryct::trace::Tracer(), name};
-    jerryct::trace::Tracer().Export(stats);
+    jerryct::telemetry::Span s{jerryct::telemetry::Tracer(), name};
+    jerryct::telemetry::Tracer().Export(stats);
   }
 }
 
