@@ -30,7 +30,7 @@ public:
     const std::uint32_t the_next{(he + 1U) % S};
 
     if (the_next == ta) {
-      losts_.store(losts_.load(std::memory_order_relaxed) + 1U, std::memory_order_release);
+      losts_.store(losts_.load(std::memory_order_relaxed) + 1U, std::memory_order_relaxed);
       return;
     }
 
@@ -50,7 +50,7 @@ public:
     tail_.store(ta, std::memory_order_release);
   }
 
-  std::uint64_t Losts() const { return losts_.load(std::memory_order_acquire); }
+  std::uint64_t Losts() const { return losts_.load(std::memory_order_relaxed); }
 
 private:
   alignas(64) std::atomic<std::uint32_t> head_{};
